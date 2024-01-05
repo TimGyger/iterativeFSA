@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 # Domain
 aoi <- c(-95.91153, -91.28381, 34.29519, 37.06811)
 # Path
-datadir <- 'C:/Users/JumpStart/Desktop'
+datadir <- getwd()
 dir.create(datadir, showWarnings=FALSE)
 mf <- getNASA("MOD11A1", "2023-08-20","2023-08-20", aoi=aoi, download = T,
               path=datadir, username="tgyger", password="Julia4$Marianne")
@@ -69,6 +69,5 @@ data_test <- data_combined %>% tidyr::drop_na(temp) %>% dplyr::select(east,north
 
 # Plots
 par(mfrow = c(1, 2),mai = c(0.5, 0.5, 0.5, 0.05))
-quilt.plot(data_combined[,1],data_combined[,2],data_combined[,5],nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Total (degrees Celcius)",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(data_train[,1],data_train[,2],data_train[,3],nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",cex.axis=1.8,main="Training (degrees Celcius)",axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-
+quilt.plot(data_combined[,1],data_combined[,2],data_combined[,5],nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Total (degrees Celcius)",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
+quilt.plot(data_train[,1],data_train[,2],data_train[,3],nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",cex.axis=1.8,main="Training (degrees Celcius)",axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)

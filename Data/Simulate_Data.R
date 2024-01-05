@@ -4,7 +4,7 @@
 
 ### Install/Load Packages
 # Package names
-packages <- c("fields","plotly", "dplyr","RandomFields")
+packages <- c("fields","ggplot2", "dplyr","RandomFields")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())

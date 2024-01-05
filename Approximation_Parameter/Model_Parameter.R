@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("fields","plotly", "dplyr","RandomFields","rlist","ggpubr")
+packages <- c("fields","ggplot2", "dplyr","RandomFields","ggpubr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("C:/Users/JumpStart/Desktop/Paper 1/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -58,7 +58,7 @@ vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017
 mat_NEGLL <- matrix(0,12,10)
 colnames(mat_NEGLL) <- vec_ind_points
 l_ap <- list()
-
+ind <- 1
 
 for (i in vec_ER) {
   
@@ -103,7 +103,7 @@ for (i in vec_ER) {
      
       gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,
                           likelihood = likelihood,num_ind_points = j,                     
-                          gp_approx = "full_scale_tapering", cov_fct_shape = 1.5,cov_fct_taper_range = ji,  
+                          gp_approx = "full_scale_tapering", cov_fct_taper_range = ji,  
                           matrix_inversion_method = "cholesky",seed = 10)
       
       mat_NEGLL[i_ind,j_ind] <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
@@ -112,7 +112,8 @@ for (i in vec_ER) {
     j_ind <- j_ind + 1
     
   }
-  l_ap <- list.append(mat_NEGLL)
+  l_ap[[ind]] <- mat_NEGLL
+  ind <- ind+1
 }
 
 
@@ -120,11 +121,11 @@ for (i in vec_ER) {
 ### Plots
 ###################
 
-FITC_plots <- vector('list', 3)
+AP_plots <- vector('list', 3)
 for (i in 1:3) {
   
   mat_NEGLL1 <- l_ap[[i]]
-  mat_NEGLL2 <- cbind(c(1:12)*10,mat_NEGLL)
+  mat_NEGLL2 <- cbind(c(1:12)*10,mat_NEGLL1)
   data_mat <- as.data.frame(mat_NEGLL2)
   rownames(data_mat) <- NULL
   colnames(data_mat)[1] <- c("x")
@@ -146,8 +147,8 @@ for (i in 1:3) {
       scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100,110,120))
   })
   
-  ggarrange(AP_plots[[1]], AP_plots[[2]], AP_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
 }
+ggarrange(AP_plots[[1]], AP_plots[[2]], AP_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
 
 
 

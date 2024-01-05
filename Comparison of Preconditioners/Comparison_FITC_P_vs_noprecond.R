@@ -1,5 +1,5 @@
 ################################################################################
-### Comparison of Preconditioner (FITC-P vs. Pivoted Cholesky)
+### Comparison of FITC-P vs. No-Preconditioner vs. exact
 ################################################################################
 
 #######
@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("fields","plotly", "dplyr","RandomFields","rlist","ggpubr")
+packages <- c("fields","ggplot2", "dplyr","RandomFields","ggpubr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("C:/Users/JumpStart/Desktop/Paper 1/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -42,7 +42,7 @@ n <- 100000
 likelihood <- "gaussian"
 
 # Effective Range
-effectiverange <- 0.05
+effectiverange <- 0.2
 
 # Range Parameter (see Table 1 in Jointly Specified Spatial Priors for Bayesian Models of Crash Frequency)
 arange <- effectiverange/4.7439
@@ -91,6 +91,7 @@ vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017
 n_vec <- c(10,20,50,80,100,150,200)*1000
 # Initialize list
 l_mat <- list()
+ind <- 1
 
 for (i in 1:3) {
   # Inducing Points
@@ -102,6 +103,7 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
+          num_neighbors_pred <- 101
         } else if(jj == 2){
           mm <- "cg"
           num_neighbors_pred <- 101
@@ -120,7 +122,8 @@ for (i in 1:3) {
       }
       iii <- iii + 1
     }
-    l_mat <- list.append(l_mat,mat_time)
+    l_mat[[ind]] <- mat_time
+    ind <- ind+1
   }
   
   if (i == 2){
@@ -131,6 +134,7 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
+          num_neighbors_pred <- 101
         } else if(jj == 2){
           mm <- "cg"
           num_neighbors_pred <- 101
@@ -149,7 +153,8 @@ for (i in 1:3) {
       }
       iii <- iii + 1
     }
-    l_mat <- list.append(l_mat,mat_time)
+    l_mat[[ind]] <- mat_time
+    ind <- ind+1
   }
   
   if (i == 3){
@@ -179,6 +184,7 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
+          num_neighbors_pred <- 101
         } else if(jj == 2){
           mm <- "cg"
           num_neighbors_pred <- 101
@@ -197,7 +203,8 @@ for (i in 1:3) {
       }
       iii <- iii + 1
     }
-    l_mat <- list.append(l_mat,mat_time)
+    l_mat[[ind]] <- mat_time
+    ind <- ind+1
   }
 }
 
@@ -222,7 +229,7 @@ for (i in 1:3) {
     vec1 <- vec/1000
   }
   mat_NEGLL1 <- l_mat[[i]]
-  mat_NEGLL2 <- cbind(vec,mat_NEGLL)
+  mat_NEGLL2 <- cbind(vec,mat_NEGLL1)
   data_mat <- as.data.frame(mat_NEGLL2)
   rownames(data_mat) <- NULL
   colnames(data_mat)[1] <- c("x")
@@ -232,8 +239,9 @@ for (i in 1:3) {
     ggplot(data_long,            
            aes(x = x,
                y = value,
-               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(name = xxlab, 
-                                                                                       labels = as.character(vec))+
+               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(values = c(2:4),name = "", 
+                                                                                       labels = c("Cholesky","No Preconditioner",
+                                                                                                  "FITC-P"))+
       theme(
         legend.position="bottom",
         legend.background = element_rect(linetype="solid", 
@@ -243,5 +251,6 @@ for (i in 1:3) {
       scale_x_continuous(breaks =vec1)
   })
   
-  ggarrange(l_plots[[1]], l_plots[[2]], l_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
 }
+
+ggarrange(l_plots[[1]], l_plots[[2]], l_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")

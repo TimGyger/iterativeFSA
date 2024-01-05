@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("fields","plotly", "dplyr","RandomFields","rlist","ggpubr")
+packages <- c("fields","ggplot2", "dplyr","RandomFields","ggpubr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("C:/Users/JumpStart/Desktop/Paper 1/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -53,7 +53,7 @@ vec_ER <- c(0.2,0.05,0.01)
 vec_samples <- c(5,10,30,50,80,100)
 # Initialize list
 l_mat <- list()
-
+ind <- 1
 for (i in 1:3) {
   
   # Effective Range
@@ -110,7 +110,9 @@ for (i in 1:3) {
       mat2[ii,j] <- var(vec_s)
     }
   }
-  l_mat <- list.append(l_mat,mat1,mat2)
+  l_mat[[ind]] <- mat1
+  l_mat[[ind+1]] <- mat2
+  ind <- ind+2
 }
 
 
@@ -120,8 +122,8 @@ for (i in 1:3) {
 
 l_plots <- vector('list', 6)
 for (i in 1:6) {
-  mat_NEGLL1 <- l_mat[[i]]
-  mat_NEGLL2 <- cbind(vec,mat_NEGLL)
+  mat_NEGLL <- l_mat[[i]]
+  mat_NEGLL2 <- cbind(vec_samples,mat_NEGLL)
   data_mat <- as.data.frame(mat_NEGLL2)
   rownames(data_mat) <- NULL
   colnames(data_mat)[1] <- c("x")
@@ -131,17 +133,17 @@ for (i in 1:6) {
     ggplot(data_long,            
            aes(x = x,
                y = value,
-               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(name = "Number of Sample Vectors", 
-                                                                                       labels = c("5","10","50","80","100"))+
+               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(values = c(2:3),name = "", 
+                                                                                       labels = c("FITC-P","No Preconditioner"))+
       theme(
         legend.position="bottom",
         legend.background = element_rect(linetype="solid", 
                                          colour ="black")
       ) +
       labs(x = "Number of Sample Vectors", y = "") +
-      scale_x_continuous(breaks =vec1)
+      scale_x_continuous(breaks =vec_samples) + scale_y_log10()
   })
-  
-  ggarrange(l_plots[[1]], l_plots[[2]], l_plots[[3]],
-            l_plots[[4]], l_plots[[5]], l_plots[[6]],ncol=3, nrow=2, common.legend = TRUE, legend="bottom")
+
 }
+ggarrange(l_plots[[1]], l_plots[[2]], l_plots[[3]],
+          l_plots[[4]], l_plots[[5]], l_plots[[6]],ncol=3, nrow=2, common.legend = TRUE, legend="bottom")

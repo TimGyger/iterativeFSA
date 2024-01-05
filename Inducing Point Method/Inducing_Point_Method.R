@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("fields","plotly", "dplyr","RandomFields","rlist","ggpubr")
+packages <- c("fields","ggplot2", "dplyr","RandomFields","ggpubr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("C:/Users/JumpStart/Desktop/Paper 1/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -70,7 +70,7 @@ l_FITC <- list()
 l_FSA <- list()
 
 ntrails <- 25
-
+ind <- 1
 for (i in vec_ER) {
   
   # Effective Range
@@ -143,8 +143,9 @@ for (i in vec_ER) {
     }
     
   }
-  l_FITC <- list.append(mat_NEGLL_FITC)
-  l_FSA <- list.append(mat_NEGLL_FSA)
+  l_FITC[[ind]] <- mat_NEGLL_FITC
+  l_FSA[[ind]] <- mat_NEGLL_FSA
+  ind <- ind+1
   
 }
 
@@ -157,7 +158,7 @@ for (i in vec_ER) {
 FITC_plots <- vector('list', 3)
 for (i in 1:3) {
   
-  mat_NEGLL1 <- l_FITC[[i]]
+  mat_NEGLL <- l_FITC[[i]]
   mat_NEGLL2 <- cbind(rep(c(rep(100,25),rep(200,25),rep(500,25),rep(1000,25)),3),c(rep("Random",4*25),rep("kMeans++",4*25),rep("CoverTree",4*25)),
                       as.numeric(c(as.numeric(mat_NEGLL[1:25,1]),as.numeric(mat_NEGLL[1:25,2]),as.numeric(mat_NEGLL[1:25,3]),as.numeric(mat_NEGLL[1:25,4]),
                                    as.numeric(mat_NEGLL[1:25,5]),as.numeric(mat_NEGLL[1:25,6]),as.numeric(mat_NEGLL[1:25,7]),as.numeric(mat_NEGLL[1:25,8]),
@@ -192,7 +193,7 @@ ggarrange( FITC_plots[[1]],  FITC_plots[[2]],  FITC_plots[[3]], ncol=3, nrow=1, 
 FSA_plots <- vector('list', 3)
 for (i in 1:3) {
   
-  mat_NEGLL1 <- l_FSA[[i]]
+  mat_NEGLL <- l_FSA[[i]]
   mat_NEGLL2 <- cbind(rep(c(rep(100,25),rep(200,25),rep(500,25),rep(1000,25)),3),c(rep("Random",4*25),rep("kMeans++",4*25),rep("CoverTree",4*25)),
                       as.numeric(c(as.numeric(mat_NEGLL[1:25,1]),as.numeric(mat_NEGLL[1:25,2]),as.numeric(mat_NEGLL[1:25,3]),as.numeric(mat_NEGLL[1:25,4]),
                                    as.numeric(mat_NEGLL[1:25,5]),as.numeric(mat_NEGLL[1:25,6]),as.numeric(mat_NEGLL[1:25,7]),as.numeric(mat_NEGLL[1:25,8]),
@@ -202,7 +203,7 @@ for (i in 1:3) {
   colnames(data_mat) <- c("x","Method","value")
   data_mat$value <- as.numeric(data_mat$value)
   
-  FITC_plots[[i]] <- local({
+  FSA_plots[[i]] <- local({
     ggplot(data_mat,            
            aes(x = reorder(x,-value),
                y = value,
