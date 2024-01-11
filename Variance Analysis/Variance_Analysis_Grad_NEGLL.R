@@ -1,5 +1,5 @@
 ################################################################################
-### Variance Analysis (NEGLL)
+### Variance Analysis (Gradient of NEGLL)
 ################################################################################
 
 #######
@@ -81,33 +81,30 @@ vec_samples <- c(5,10,30,50,80,100)
 # Initialize list
 l_mat <- list()
 
-Var_Mat_relerr <- matrix(0,length(vec_samples),3)
-Range_Mat_relerr <- matrix(0,length(vec_samples),3)
-Var_Mat_var <- matrix(0,length(vec_samples),3)
-Range_Mat_var <- matrix(0,length(vec_samples),3)
+Var_Mat_relerr <- matrix(0,length(vec_samples),2)
+Range_Mat_relerr <- matrix(0,length(vec_samples),2)
+Var_Mat_var <- matrix(0,length(vec_samples),2)
+Range_Mat_var <- matrix(0,length(vec_samples),2)
 
 gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = likelihood,seed = 10, num_ind_points = 499,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                       likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
                        y = y_train,params = list(maxit=1,trace=TRUE,lr_cov = 1e-8, init_cov_pars = init_cov_pars))
 
 Var_para <- (log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8
 Range_para <- (log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8
 num_trials <- 25
-for (i in 1:3) {
+for (i in 1:2) {
   prec <- "predictive_process_plus_diagonal"
-  cc <- "none"
   if(i == 2){
-    cc <- "random"
-  }
-  if(i == 3){
     prec <- "none"
   }
+  
   for (jj in 1:length(vec_samples)) {
     vec_s <- rep(0,num_trials)
     vec_s1 <- rep(0,num_trials)
     for (ii in 1:num_trials) {
-      gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cg",
-                             likelihood = likelihood,vecchia_ordering = cc,seed = 10, num_ind_points = 499,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+      gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
+                             likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
                              y = y_train,params = list(maxit=1,trace=TRUE,cg_delta_conv = 0.001,
                                                        cg_preconditioner_type = prec,
                                                        cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[jj],
@@ -115,6 +112,7 @@ for (i in 1:3) {
       
       vec_s[ii] <- abs((log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8-Var_para)/Var_para
       vec_s1[ii] <- abs((log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8-Range_para)/Range_para
+      # If range very small change sign of 1e-8
     }
     Var_Mat_relerr[jj,i] <- mean(vec_s)
     Range_Mat_relerr[jj,i] <- mean(vec_s1)
@@ -141,8 +139,8 @@ for (i in 1:4) {
     ggplot(data_long,            
            aes(x = x,
                y = value,
-               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(values = c(2:4),name = "", 
-                                                                                       labels = c("FITC-P with c=1","FITC-P with optimal c",
+               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(values = c(2:3),name = "", 
+                                                                                       labels = c("FITC-P with optimal c",
                                                                                                   "No Preconditioner"))+
       theme(
         legend.position="bottom",

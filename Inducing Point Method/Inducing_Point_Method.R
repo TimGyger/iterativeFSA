@@ -52,7 +52,7 @@ vec_ER <- c(0.2,0.05,0.01)
 # Taper Range
 taper_range <- 0.016  # 80 average non-zero entries per row
 # Inducing point methods
-vec_ind_points_method <- c("random","kmeans++","covertree")
+vec_ind_points_method <- c("random","kmeans++","cover_tree")
 # Initialize matrices and vectors
 mat_NEGLL_FITC <- matrix(0,25,4*3)
 colnames(mat_NEGLL_FITC) <- c(paste(vec_ind_points_method,100),
@@ -71,6 +71,8 @@ l_FSA <- list()
 
 ntrails <- 25
 ind <- 1
+vec_ct_range <- 1/c(12,17,27,40)
+vec_ind_points <- c(100,200,500,1000)
 for (i in vec_ER) {
   
   # Effective Range
@@ -110,23 +112,13 @@ for (i in vec_ER) {
   
   for (j in vec_ind_points_method) {
     # Number of inducing points
-    if(j == "random"){
-      ij <- 0
-      vec_ind_points <- c(100,200,500,1000)
-    } else if(j == "kmeans++"){
-      ij <- 4
-      vec_ind_points <- c(100,200,500,1000)-1
-    } else if(j == "covertree"){
-      ij <- 8
-      vec_ind_points <- c(12,17,27,40)
-    }
     for (ji in 1:length(vec_ind_points)) {
       for (ii in 1:ntrails) {
         
         # FITC
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,
-                            likelihood = likelihood,num_ind_points = vec_ind_points[ji],                     
-                            gp_approx = "predictive_process",
+                            likelihood = likelihood,num_ind_points = vec_ind_points[ji],cover_tree_radius = vec_ct_range[ji],                 
+                            gp_approx = "FITC",ind_points_selection = j,
                             matrix_inversion_method = "cholesky",seed = ii*10)
         
         mat_NEGLL_FITC[ii,ij+ji] <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
@@ -134,7 +126,7 @@ for (i in vec_ER) {
         # FSA
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
                             likelihood = likelihood,num_ind_points = vec_ind_points[ji],cov_fct_taper_range = taper_range,                          
-                            gp_approx = "full_scale_tapering",
+                            gp_approx = "full_scale_tapering", cover_tree_radius = vec_ct_range[ji],ind_points_selection = j,
                             matrix_inversion_method = "cholesky",seed = ii*10)
         
         mat_NEGLL_FSA[ii,ij+ji] <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)

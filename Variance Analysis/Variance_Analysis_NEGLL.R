@@ -83,7 +83,7 @@ for (i in 1:3) {
   y_train <- Y
   
   gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                      likelihood = likelihood,num_ind_points = 499,cov_fct_taper_range = 0.016, num_neighbors = 50,                       
+                      likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = 0.016, num_neighbors = 50,                       
                       gp_approx = "full_scale_tapering",
                       matrix_inversion_method = "cholesky",seed = 10)
   
@@ -92,18 +92,16 @@ for (i in 1:3) {
   mat2 <- matrix(0,length(vec_samples),2)
   for (ii in 1:length(vec_samples)) {
     for (j in 1:2){
-      if (j == 1){
-        num_neighbors_pred = 101
-      } else {
-        num_neighbors_pred = 100
-      }
       vec_s <- rep(0,25)
       for (jj in 1:25){
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = 499,cov_fct_taper_range = 0.016, num_neighbors = vec_samples[ii],                       
-                            gp_approx = "full_scale_tapering",num_neighbors_pred = num_neighbors_pred,
-                            matrix_inversion_method = "cg",seed = jj*10)
-        
+                            likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = 0.016, num_neighbors = vec_samples[ii],                       
+                            gp_approx = "full_scale_tapering", matrix_inversion_method = "iterative",seed = jj*10)
+        if (j == 2){
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "predictive_process_plus_diagonal"))
+        } else {
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
+        }
         vec_s[jj] <- abs(gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)-NEGLL)/NEGLL
       }
       mat1[ii,j] <- mean(vec_s)

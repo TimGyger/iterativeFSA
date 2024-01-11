@@ -84,11 +84,13 @@ if (likelihood == "gaussian") {
 # Effective ranges
 vec_ER <- c(0.2,0.05,0.01)
 # Number of inducing points
-vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)-1
+vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)
 # Taper Range
 vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017,0.0179,0.0188,0.0197)
 # sample size
 n_vec <- c(10,20,50,80,100,150,200)*1000
+# Taper range 2
+vec_taper_range2 <- c(0.05,0.036,0.0227,0.0179,0.016,0.013,0.0113)
 # Initialize list
 l_mat <- list()
 ind <- 1
@@ -103,20 +105,19 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
-          num_neighbors_pred <- 101
-        } else if(jj == 2){
-          mm <- "cg"
-          num_neighbors_pred <- 101
         } else {
-          mm <- "cg"
-          num_neighbors_pred <- 100
+          mm <- "iterative"
         }
         t1 <- Sys.time()
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = ii,cov_fct_taper_range = 0.016, num_neighbors = 50,                       
-                            gp_approx = "full_scale_tapering",num_neighbors_pred = num_neighbors_pred,
+                            likelihood = likelihood,num_ind_points = ii,cov_fct_taper_range = 0.016,                     
+                            gp_approx = "full_scale_tapering",
                             matrix_inversion_method = mm,seed = 10)
-        
+        if (jj == 3){
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "predictive_process_plus_diagonal"))
+        } else {
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
+        }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
         mat_time[iii,jj] <- Sys.time() - t1
       }
@@ -134,20 +135,19 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
-          num_neighbors_pred <- 101
-        } else if(jj == 2){
-          mm <- "cg"
-          num_neighbors_pred <- 101
         } else {
-          mm <- "cg"
-          num_neighbors_pred <- 100
+          mm <- "iterative"
         }
         t1 <- Sys.time()
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = 499,cov_fct_taper_range = ii, num_neighbors = 50,                       
-                            gp_approx = "full_scale_tapering",num_neighbors_pred = num_neighbors_pred,
+                            likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = ii,                   
+                            gp_approx = "full_scale_tapering",
                             matrix_inversion_method = mm,seed = 10)
-        
+        if (jj == 3){
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "predictive_process_plus_diagonal"))
+        } else {
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
+        }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
         mat_time[iii,jj] <- Sys.time() - t1
       }
@@ -184,20 +184,19 @@ for (i in 1:3) {
       for (jj in 1:3) {
         if(jj == 1){
           mm <- "cholesky"
-          num_neighbors_pred <- 101
-        } else if(jj == 2){
-          mm <- "cg"
-          num_neighbors_pred <- 101
         } else {
-          mm <- "cg"
-          num_neighbors_pred <- 100
+          mm <- "iterative"
         }
         t1 <- Sys.time()
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = 499,cov_fct_taper_range = 0.016, num_neighbors = 50,                       
-                            gp_approx = "full_scale_tapering",num_neighbors_pred = num_neighbors_pred,
+                            likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = vec_taper_range2[iii],                       
+                            gp_approx = "full_scale_tapering",
                             matrix_inversion_method = mm,seed = 10)
-        
+        if (jj == 3){
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "predictive_process_plus_diagonal"))
+        } else {
+          gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
+        }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
         mat_time[iii,jj] <- Sys.time() - t1
       }

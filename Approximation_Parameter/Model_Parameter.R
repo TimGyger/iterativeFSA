@@ -50,7 +50,7 @@ likelihood <- "gaussian"
 # Effective ranges
 vec_ER <- c(0.2,0.05,0.01)
 # Number of inducing points
-vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)-1
+vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)
 # Taper Range
 vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017,0.0179,0.0188,0.0197)
 

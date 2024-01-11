@@ -88,7 +88,7 @@ for (ii in 1:num_samples) {
   ## Plot
   quilt.plot(X[,1],X[,2],Y,nx = 200)
   grid()
-  coords_test <- X
+  coords_test <- as.matrix(X)
   y_test <- Y
   
   #######################
@@ -101,19 +101,20 @@ for (ii in 1:num_samples) {
     if (i == 1){
       mim <- "cholesky"
     } else {
-      mim <- "cg"
+      mim <- "iterative"
     }
     t1 <- Sys.time()
     gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = mim,
-                           likelihood = likelihood,vecchia_ordering = "random",seed = 10, num_ind_points = 499,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
-                           y = y_train,num_neighbors_pred = 6, params = list(maxit=1000,trace=TRUE,cg_delta_conv = 0.001,
-                                                                             cg_preconditioner_type = "predictive_process_plus_diagonal", piv_chol_rank = 500,
+                           likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                           y = y_train,params = list(maxit=100,trace=TRUE,cg_delta_conv = 0.001,
+                                                                             cg_preconditioner_type = "predictive_process_plus_diagonal",
                                                                              cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,
                                                                              seed_rand_vec_trace = 10,reuse_rand_vec_trace = T,lr_cov = 1e-3))
     
     vec_info[4] <- Sys.time() - t1
     vec_info[1:3] <- gp_model$get_cov_pars()
     t1 <- Sys.time()
+    gp_model$set_prediction_data(cg_delta_conv_pred = 1e-3, nsim_var_pred = 500)
     pred <- predict(gp_model, gp_coords_pred = coords_test, predict_var = T,y = y_train)
     vec_info[5] <- sqrt(mean((y_test-pred$mu)^2))
     vec_info[6] <- -mean(dnorm(y_test,pred$mu,sqrt(pred$var), log = T))
