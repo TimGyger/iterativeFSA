@@ -39,7 +39,7 @@ rownames(mat) <- c("beta_0","beta_1","beta_2","sigma","sigma_1","rho","time1","R
 
 a <- Sys.time()
 gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
-                       likelihood = "gaussian",seed = 1000, num_ind_points = 500,cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "full_scale_tapering",
+                       likelihood = "gaussian",seed = 10, num_ind_points = 500,cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "full_scale_tapering",
                        y = dat_train[,3],params = list(maxit=1000,trace=TRUE,cg_delta_conv = 1,cg_preconditioner_type = "predictive_process_plus_diagonal",
                                                                                                   optimizer_cov = "gradient_descent",optimizer_coef = "gradient_descent",
                                                                                                   cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,
@@ -69,7 +69,7 @@ pred1 <- pred
 
 a <- Sys.time()
 gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 1000, num_ind_points = 500,cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "full_scale_tapering",
+                       likelihood = "gaussian",seed = 10, num_ind_points = 500,cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "full_scale_tapering",
                        y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "gradient_descent",optimizer_coef = "gradient_descent",
                                                        lr_cov = 1e-4,lr_coef = 1e-3,delta_rel_conv= 1e-6))
 
@@ -95,7 +95,7 @@ pred2 <- pred
 
 a <- Sys.time()
 gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 1000, num_ind_points = 500,gp_approx = "FITC",
+                       likelihood = "gaussian",seed = 10, num_ind_points = 500,gp_approx = "FITC",
                        y = dat_train[,3],params = list(maxit=1000,trace=TRUE, optimizer_cov = "gradient_descent",optimizer_coef = "gradient_descent",
                                                                                                   lr_cov = 1e-4,lr_coef = 1e-3,
                                                                                                   delta_rel_conv= 1e-6))
@@ -122,8 +122,8 @@ pred3 <- pred
 
 a <- Sys.time()
 gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 1000, cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "tapering",
-                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "gradient_descent",optimizer_coef = "gradient_descent",
+                       likelihood = "gaussian",seed = 10, cov_fct_taper_range = 7500,cov_fct_taper_shape = 2, gp_approx = "tapering",
+                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "gradient_descent",optimizer_coef = "gradient_descent",init_cov_pars = c(21.3375,21.3375,207531),
                                                                                                   lr_cov = 1e-4,lr_coef = 1e-3, delta_rel_conv= 1e-6))
 
 mat[1:7,4] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),Sys.time()-a)
