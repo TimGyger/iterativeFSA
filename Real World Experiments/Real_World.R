@@ -153,12 +153,12 @@ print(mat)
 
 par(mfrow = c(2,2),mai = c(0.2, 0.25, 0.25, 0.01))
 
-quilt.plot(dat_test[,1],dat_test[,2],y_test,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "Northing (m)",main="Iterative-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2, show.)
-quilt.plot(dat_test[,1],dat_test[,2],pred1$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Exact-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
+quilt.plot(dat_test[,1],dat_test[,2],y_test,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "Northing (m)",main="Iterative-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
+quilt.plot(dat_test[,1],dat_test[,2],pred1$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Cholesky-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 quilt.plot(dat_test[,1],dat_test[,2],pred3$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Tapering",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 quilt.plot(dat_test[,1],dat_test[,2],pred4$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "",main="FITC",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 
 quilt.plot(dat_test[,1],dat_test[,2],pred1$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "Northing (m)",main="Iterative-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred2$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Exact-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
+quilt.plot(dat_test[,1],dat_test[,2],pred2$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Cholesky-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 quilt.plot(dat_test[,1],dat_test[,2],pred3$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Tapering",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 quilt.plot(dat_test[,1],dat_test[,2],pred4$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "",main="FITC",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)

@@ -143,7 +143,7 @@ tab_final <- cbind(apply(tab_final_chol,1,mean),apply(tab_final_iter,1,mean))
 tab_final_se <- cbind(apply(tab_final_chol,1,sd)/sqrt(num_samples),apply(tab_final_iter,1,sd)/sqrt(num_samples))
 
 tab_final <- cbind(tab_final,tab_final_se)
-colnames(tab_final) <- c("Exact","Iterative","Exact Standard Error","Iterative Standard Error")
+colnames(tab_final) <- c("Cholesky","Iterative","Cholesky Standard Error","Iterative Standard Error")
 rownames(tab_final) <- c("sigma","sigma_1","rho","time","RMSE","Log-Score","CRPSE","time_pred")
 
 

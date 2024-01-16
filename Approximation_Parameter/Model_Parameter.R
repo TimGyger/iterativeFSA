@@ -44,7 +44,7 @@ likelihood <- "gaussian"
 
 
 #######################
-### Compare exact NEGLL
+### Compare NEGLL
 #######################
 
 # Effective ranges

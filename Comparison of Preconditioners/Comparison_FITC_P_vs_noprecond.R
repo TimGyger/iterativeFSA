@@ -1,5 +1,5 @@
 ################################################################################
-### Comparison of FITC-P vs. No-Preconditioner vs. exact
+### Comparison of FITC-P vs. No-Preconditioner vs. Cholesky
 ################################################################################
 
 #######

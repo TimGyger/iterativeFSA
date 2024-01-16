@@ -103,7 +103,7 @@ rownames(mat) <- c("Log-Score 50","CRPS 50","RMSE 50","Time 50",
                    "Log-Score 500","CRPS 500","RMSE 500","Time 500",
                    "Log-Score 1000","CRPS 1000","RMSE 1000","Time 1000",
                    "Log-Score 5000","CRPS 5000","RMSE 5000","Time 5000")
-colnames(mat) <- c("Stochastic","Exact")
+colnames(mat) <- c("Stochastic","Cholesky")
 mat_var <- mat
 gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
                        likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
@@ -169,7 +169,7 @@ df3 <- as.data.frame(df3)
 gfg_plot1 <- ggplot(data = df3) +  geom_line(aes(x = Time,y = LogScore, color = "Stochastic")) + geom_point(aes(x = Time,y = LogScore), color = 4) +
   geom_text(aes(x = Time,y = LogScore, label = vec_num2),hjust=0.5, vjust=-0.5,color = 4,size = 4) +
   geom_text(aes(x = Time,y = LogScore, label = vec_num1),hjust=0.5, vjust=1.5,color = 4,size = 4) +
-  geom_text(aes(x = 1400,y = mat[1,2], label = paste0("Exact: ",mat[4,2]," s")),size = 5) +
+  geom_text(aes(x = 1400,y = mat[1,2], label = paste0("Cholesky: ",mat[4,2]," s")),size = 5) +
   scale_x_log10(limits = c(55,2000), breaks = c(50,100,200,500,1000,2000)) + scale_y_log10() + 
   labs(x = "Time (s)", y = "Log-Score") + theme(
     legend.position="bottom",
