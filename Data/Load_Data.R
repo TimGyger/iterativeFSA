@@ -18,13 +18,16 @@ invisible(lapply(packages, library, character.only = TRUE))
 ## Load MODIS data
 ##########
 
+# Add username and password
+username <- ""
+password <- ""
 # Domain
 aoi <- c(-95.91153, -91.28381, 34.29519, 37.06811)
 # Path
 datadir <- getwd()
 dir.create(datadir, showWarnings=FALSE)
 mf <- getNASA("MOD11A1", "2023-08-20","2023-08-20", aoi=aoi, download = T,
-              path=datadir, username="tgyger", password="Julia4$Marianne")
+              path=datadir, username= username, password=password)
 
 # Raster
 r <- raster(mf[1])
