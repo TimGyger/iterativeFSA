@@ -48,7 +48,7 @@ likelihood <- "gaussian"
 
 
 # Effective ranges
-vec_ER <- c(0.2,0.05,0.01)
+vec_ER <- c(0.5,0.2,0.05)
 # Number of sample vectors
 vec_samples <- c(5,10,30,50,80,100)
 # Initialize list
@@ -82,30 +82,39 @@ for (i in 1:3) {
   coords_train <- X
   y_train <- Y
   
-  gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                      likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = 0.016, num_neighbors = 50,                       
-                      gp_approx = "full_scale_tapering",
-                      matrix_inversion_method = "cholesky",seed = 10)
-  
-  NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
-  mat1 <- matrix(0,length(vec_samples),2)
-  mat2 <- matrix(0,length(vec_samples),2)
+  gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
+                         likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                         y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,optimizer_cov = "gradient_descent",
+                                                   init_cov_pars = c(1,1,arange)))
+  NEGLL <- gp_model$get_current_neg_log_likelihood()
+  mat1 <- matrix(0,length(vec_samples),25)
+  mat2 <- matrix(0,length(vec_samples),25)
   for (ii in 1:length(vec_samples)) {
     for (j in 1:2){
       vec_s <- rep(0,25)
       for (jj in 1:25){
-        gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = 0.016, num_neighbors = vec_samples[ii],                       
-                            gp_approx = "full_scale_tapering", matrix_inversion_method = "iterative",seed = jj*10)
+        
         if (j == 2){
-          gp_model$set_optim_params(params = list(cg_preconditioner_type = "predictive_process_plus_diagonal"))
+          gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
+                                 likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                                 y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,optimizer_cov = "gradient_descent",
+                                                           cg_preconditioner_type = "predictive_process_plus_diagonal",
+                                                           cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[ii],
+                                                           seed_rand_vec_trace = jj*10,reuse_rand_vec_trace = T,init_cov_pars = c(1,1,arange)))
+          mat1[ii,jj] <- (gp_model$get_current_neg_log_likelihood()-NEGLL)/NEGLL
         } else {
-          gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
+          gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
+                                 likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                                 y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,optimizer_cov = "gradient_descent",
+                                                           cg_preconditioner_type = "none",
+                                                           cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[ii],
+                                                           seed_rand_vec_trace = jj*10,reuse_rand_vec_trace = T,init_cov_pars = c(1,1,arange)))
+          mat2[ii,jj] <- (gp_model$get_current_neg_log_likelihood()-NEGLL)/NEGLL
         }
-        vec_s[jj] <- abs(gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)-NEGLL)/NEGLL
+        
       }
-      mat1[ii,j] <- mean(vec_s)
-      mat2[ii,j] <- var(vec_s)
+      print(mat1)
+      print(mat2)
     }
   }
   l_mat[[ind]] <- mat1
