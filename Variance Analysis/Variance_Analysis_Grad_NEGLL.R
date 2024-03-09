@@ -42,7 +42,7 @@ n <- 100000
 likelihood <- "gaussian"
 
 # Effective Range
-effectiverange <- 0.05
+effectiverange <- 0.2
 
 # Range Parameter (see Table 1 in Jointly Specified Spatial Priors for Bayesian Models of Crash Frequency)
 arange <- effectiverange/4.7439
@@ -88,7 +88,7 @@ Range_Mat_var <- matrix(0,length(vec_samples),2)
 
 gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
                        likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
-                       y = y_train,params = list(maxit=1,trace=TRUE,lr_cov = 1e-8, init_cov_pars = init_cov_pars))
+                       y = y_train,params = list(maxit=1,trace=TRUE,lr_cov = 1e-8, init_cov_pars = init_cov_pars,optimizer_cov = "gradient_descent"))
 
 Var_para <- (log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8
 Range_para <- (log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8
@@ -106,7 +106,7 @@ for (i in 1:2) {
       gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
                              likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
                              y = y_train,params = list(maxit=1,trace=TRUE,cg_delta_conv = 0.001,
-                                                       cg_preconditioner_type = prec,
+                                                       cg_preconditioner_type = prec,optimizer_cov = "gradient_descent",
                                                        cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[jj],
                                                        seed_rand_vec_trace = ii*10,reuse_rand_vec_trace = T,lr_cov = 1e-8, init_cov_pars = init_cov_pars))
       

@@ -48,7 +48,7 @@ likelihood <- "gaussian"
 #######################
 
 # Effective ranges
-vec_ER <- c(0.2,0.05,0.01)
+vec_ER <- c(0.5,0.2,0.05)
 # Taper Range
 taper_range <- 0.016  # 80 average non-zero entries per row
 # Inducing point methods
@@ -109,7 +109,7 @@ for (i in vec_ER) {
   } else {
     init_cov_pars <- c(sigma_error,arange)
   }
-  
+  ij <- 0
   for (j in vec_ind_points_method) {
     # Number of inducing points
     for (ji in 1:length(vec_ind_points)) {
@@ -118,7 +118,7 @@ for (i in vec_ER) {
         # FITC
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,
                             likelihood = likelihood,num_ind_points = vec_ind_points[ji],cover_tree_radius = vec_ct_range[ji],                 
-                            gp_approx = "FITC",ind_points_selection = j,
+                            gp_approx = "fitc",ind_points_selection = j,
                             matrix_inversion_method = "cholesky",seed = ii*10)
         
         mat_NEGLL_FITC[ii,ij+ji] <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
@@ -133,6 +133,7 @@ for (i in vec_ER) {
         
       } 
     }
+    ij <- ij + length(vec_ind_points)
     
   }
   l_FITC[[ind]] <- mat_NEGLL_FITC

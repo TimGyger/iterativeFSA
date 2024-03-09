@@ -42,7 +42,7 @@ n <- 100000
 likelihood <- "gaussian"
 
 # Effective Range
-effectiverange <- 0.05
+effectiverange <- 0.2
 
 # Range Parameter (see Table 1 in Jointly Specified Spatial Priors for Bayesian Models of Crash Frequency)
 arange <- effectiverange/4.7439
@@ -94,20 +94,20 @@ y_test <- Y
 
 
 # Number of sample vectors / Rank
-vec_samples <- c(50,100,200,500,1000,5000)
+vec_samples <- c(50,200,500,1000,2000,5000)
 # Initialize matrix
 mat <- matrix(0,24,2)
 rownames(mat) <- c("Log-Score 50","CRPS 50","RMSE 50","Time 50",
-                   "Log-Score 100","CRPS 100","RMSE 100","Time 100",
                    "Log-Score 200","CRPS 200","RMSE 200","Time 200",
                    "Log-Score 500","CRPS 500","RMSE 500","Time 500",
                    "Log-Score 1000","CRPS 1000","RMSE 1000","Time 1000",
+                   "Log-Score 2000","CRPS 2000","RMSE 2000","Time 2000",
                    "Log-Score 5000","CRPS 5000","RMSE 5000","Time 5000")
 colnames(mat) <- c("Stochastic","Cholesky")
 mat_var <- mat
 gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
-                       y = y_train,params = list(maxit=0,trace=TRUE,lr_cov = 1e-8,init_cov_pars = init_cov_pars))
+                       likelihood = likelihood,seed = 10, num_ind_points = 499,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                       y = y_train,params = list(maxit=0,trace=TRUE,lr_cov = 1e-8,init_cov_pars = c(1,1,arange)))
 t1 <- Sys.time()
 pred_Chol <- predict(gp_model, gp_coords_pred = coords_test, predict_var = T,y = y_train)
 mat[4,2] <- Sys.time() - t1 
@@ -120,22 +120,23 @@ for (ii in 1:length(vec_samples)) {
   mat_rep <- matrix(0,4,25)
   for (jj in 1:25) {
     gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
-                           likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
-                           y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,init_cov_pars = init_cov_pars,
+                           likelihood = likelihood,seed = 10, num_ind_points = 499,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                           y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,init_cov_pars = c(1,1,arange),
                                                                               cg_preconditioner_type = "predictive_process_plus_diagonal",
                                                                               cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,
-                                                                              seed_rand_vec_trace = 10*jj,reuse_rand_vec_trace = T,lr_cov = 1e-8))
+                                                                              seed_rand_vec_trace = 10,reuse_rand_vec_trace = T,lr_cov = 1e-8))
     t1 <- Sys.time()
-    gp_model$set_prediction_data(cg_delta_conv_pred = 1e-3, nsim_var_pred = vec_samples[ii])
+    gp_model$set_prediction_data(piv_chol_rank = 1e-3, nsim_var_pred = vec_samples[ii])
+    gp_model$set_optim_params(list(piv_chol_rank = 5000))
     pred <- predict(gp_model, gp_coords_pred = coords_test, predict_var = T,y = y_train)
     mat_rep[1,jj] <- Sys.time() - t1
-    mat_rep[2,jj] <- sqrt(mean((pred$var-pred_Chol$var)^2))
+    mat_rep[2,jj] <- sqrt(mean((pred$var-as.numeric(unlist(pred_Chol$var)))^2))
     mat_rep[3,jj] <- -mean(dnorm(y_test,pred$mu,sqrt(pred$var), log = T))
     help_vec <- dnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
     help_vec2 <- pnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
     mat_rep[4,jj] <- -mean(sqrt(pred$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred$mu)/sqrt(pred$var))*(2*help_vec2-1)))
   }
-  
+  pred_Chol_var <- read.table("C:/Users/JumpStart/Desktop/R-Code/Simulations/Prediction/Chol_var.txt")
   mat[k+4,1] <- mean(mat_rep[1,])
   mat[k+3,1] <- mean(mat_rep[2,])
   mat[k+1,1] <- mean(mat_rep[3,])
@@ -146,51 +147,5 @@ for (ii in 1:length(vec_samples)) {
   mat_var[k+2,1] <- var(mat_rep[4,])
   k <- k + 4
 }
-
-
-###################
-### Variance Table
-###################
-
-print(mat_var)
-
-###################
-### Plots
-###################
-
-vec_num1 <- vec_samples
-vec_num1[-2] <- ""
-vec_num2 <- vec_samples
-vec_num2[2] <- ""
-
-df3 <- cbind(mat[c(1:6)*4-1,1],mat[c(1:6)*4-3,1],mat[c(1:6)*4,1])
-colnames(df3) <- c("RMSE","LogScore","Time")
-df3 <- as.data.frame(df3)
-gfg_plot1 <- ggplot(data = df3) +  geom_line(aes(x = Time,y = LogScore, color = "Stochastic")) + geom_point(aes(x = Time,y = LogScore), color = 4) +
-  geom_text(aes(x = Time,y = LogScore, label = vec_num2),hjust=0.5, vjust=-0.5,color = 4,size = 4) +
-  geom_text(aes(x = Time,y = LogScore, label = vec_num1),hjust=0.5, vjust=1.5,color = 4,size = 4) +
-  geom_text(aes(x = 1400,y = mat[1,2], label = paste0("Cholesky: ",mat[4,2]," s")),size = 5) +
-  scale_x_log10(limits = c(55,2000), breaks = c(50,100,200,500,1000,2000)) + scale_y_log10() + 
-  labs(x = "Time (s)", y = "Log-Score") + theme(
-    legend.position="bottom",
-    legend.title=element_blank(),
-    legend.background = element_rect(linetype="solid", 
-                                     colour ="black")) + theme(text = element_text(size=20)) + 
-  geom_hline(yintercept=mat[1,2], linetype="dashed", color = "black") + 
-  geom_point(aes(x = mat[1,2],y = mat[4,2]), color = "black")
-
-gfg_plot2 <- ggplot(data = df3) +  geom_line(aes(x = Time,y = RMSE, color = "Stochastic")) + geom_point(aes(x = Time,y = RMSE), color = 4) +
-  geom_text(aes(x = Time,y = RMSE, label = vec_samples),hjust=-0.1, vjust=0,color = 4,size = 4) +
-  scale_x_log10() + scale_y_log10() +
-  labs(x = "Time (s)", y = "RMSE") + theme(
-    legend.position="bottom",
-    legend.title=element_blank(),
-    legend.background = element_rect(linetype="solid", 
-                                     colour ="black"), text = element_text(size=20))
-
-
-
-
-ggpubr::ggarrange(gfg_plot1,gfg_plot2, ncol=2, nrow=1, common.legend = TRUE, legend="bottom")
 
 
