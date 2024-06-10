@@ -42,7 +42,7 @@ quilt.plot(data[,1],data[,2],data[,3],nx = 200)
 
 # Define Test coordinates
 mf <- getNASA("MOD11A1", "2023-09-06","2023-09-06", aoi=aoi, download = T,
-              path=datadir, username="tgyger", password="Julia4$Marianne")
+              path=datadir, username=username, password=password)
 
 # Raster
 r <- raster(mf[1])
