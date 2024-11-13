@@ -11,6 +11,12 @@ On a standard laptop, memory limitations may arise; therefore, it is recommended
 These computations can be time-intensive on typical hardware, especially for the full-scale approximation. Using Cholesky-based methods with the setting ```matrix_inversion_method = "iterative"``` can significantly accelerate the process in this case. 
 However, note that this approach may yield a less accurate estimation of the negative log-likelihood.
 
+## Runtime Comparison of iterative and Cholesky-based methods
+
+The script ```Comparison_Iterative_vs_Cholesky.R``` calculates the negative log-likelihood at the data-generating parameters for various numbers of inducing points, taper ranges and sample sizes and generates Figure 5 in the main manuscript in Section ```Accuracy and computational time of parameter estimates and
+predictive distributions```. 
+On a standard laptop, memory limitations may arise; therefore, it is recommended to use no more than 500 inducing points and n <= 100'000 to prevent such issues.
+
 ## Choice of full-scale approximation parameters
 
 The script ```Model_Parameter.R``` calculates the negative log-likelihood at the data-generating parameters for various numbers of inducing points and taper ranges and generates Figure 1 in the Appendix ```Choice of full-scale approximation parameters```. 
