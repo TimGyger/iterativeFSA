@@ -34,8 +34,8 @@ dat_train <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/it
 dat_test <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_test_temp.txt"))
 
 y_test <- dat_test[,3]
-mat <- matrix(0,11,4)
-colnames(mat) <- c("Iterative FSA","Exact FSA","FITC","Tapering")
+mat <- matrix(0,11,6)
+colnames(mat) <- c("Iterative FSA","Exact FSA","FITC","Tapering","Vecchia 30", "Vecchia 200")
 rownames(mat) <- c("beta_0","beta_1","beta_2","sigma","sigma_1","rho","time1","RMSE","Log-Score","CRPS","time2")
 ###########################
 ### Iterative FSA
@@ -97,8 +97,8 @@ pred2 <- pred
 
 a <- Sys.time()
 gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 10, num_ind_points = 500,gp_approx = "FITC",
-                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE, optimizer_cov = "lbfgs"))
+                       likelihood = "gaussian",seed = 10, num_ind_points = 500,gp_approx = "fitc",
+                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE, optimizer_cov = "gradient_descent"))
 
 mat[1:7,3] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),Sys.time()-a)
 
@@ -139,6 +139,54 @@ mat[10,4] <- -mean(sqrt(pred$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred$mu)/sqrt(
 mat[11,4] <- time2
 
 pred4 <- pred
+###########################
+### Vecchia 30
+###########################
+
+a <- proc.time()[[3]]
+gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
+                       likelihood = "gaussian",seed = 10, gp_approx = "vecchia", num_neighbors = 30,
+                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs"))
+
+mat[1:7,5] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
+
+aa <- proc.time()[[3]]
+pred <- predict(X_pred = as.matrix(cbind(rep(1,nrow(dat_test)),dat_test[,1:2])),gp_model, gp_coords_pred = as.matrix(dat_test[,1:2]), predict_var = T,y = dat_train[,3])
+time2 <- proc.time()[[3]]-aa
+
+mat[8,5] <- sqrt(mean((pred$mu-y_test)^2))
+mat[9,5] <- -mean(dnorm(y_test,pred$mu,sqrt(pred$var), log = T))
+help_vec <- dnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
+help_vec2 <- pnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
+mat[10,5] <- -mean(sqrt(pred$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred$mu)/sqrt(pred$var))*(2*help_vec2-1)))
+mat[11,5] <- time2
+
+pred5 <- pred
+
+###########################
+### Vecchia 120
+###########################
+
+a <- proc.time()[[3]]
+gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
+                       likelihood = "gaussian",seed = 10, gp_approx = "vecchia", num_neighbors = 200,
+                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs"))
+
+mat[1:7,6] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
+
+aa <- proc.time()[[3]]
+pred <- predict(X_pred = as.matrix(cbind(rep(1,nrow(dat_test)),dat_test[,1:2])),gp_model, gp_coords_pred = as.matrix(dat_test[,1:2]), predict_var = T,y = dat_train[,3])
+time2 <- proc.time()[[3]]-aa
+
+mat[8,6] <- sqrt(mean((pred$mu-y_test)^2))
+mat[9,6] <- -mean(dnorm(y_test,pred$mu,sqrt(pred$var), log = T))
+help_vec <- dnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
+help_vec2 <- pnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
+mat[10,6] <- -mean(sqrt(pred$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred$mu)/sqrt(pred$var))*(2*help_vec2-1)))
+mat[11,6] <- time2
+
+pred6 <- pred
+
 
 ########################
 ### Table
@@ -150,14 +198,19 @@ print(mat)
 ### Plots
 #########################
 
-par(mfrow = c(2,2),mai = c(0.2, 0.25, 0.25, 0.01))
+z1 <- c(min(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu,pred6$mu),
+        max(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu,pred6$mu))
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred1$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Test Data",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred2$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred3$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Tapering",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred4$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="FITC",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 30",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred6$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 200",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
 
-quilt.plot(dat_test[,1],dat_test[,2],y_test,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "Northing (m)",main="Iterative-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred1$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Cholesky-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred3$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Tapering",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred4$mu,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "",main="FITC",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
 
-quilt.plot(dat_test[,1],dat_test[,2],pred1$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "Northing (m)",main="Iterative-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred2$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "",ylab = "",main="Cholesky-FSA",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred3$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "Northing (m)",main="Tapering",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
-quilt.plot(dat_test[,1],dat_test[,2],pred4$var,nx = 200,ny = 200,legend.width = 0.5,xlab = "Easting (m)",ylab = "",main="FITC",cex.axis=1.8,axis.args=list(cex.axis=2),cex.lab=2, cex.main=2)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred1$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred2$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Cholesky-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred3$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Tapering",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred4$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="FITC",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 30",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred6$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 200",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
