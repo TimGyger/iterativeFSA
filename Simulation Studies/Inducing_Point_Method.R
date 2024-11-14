@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters

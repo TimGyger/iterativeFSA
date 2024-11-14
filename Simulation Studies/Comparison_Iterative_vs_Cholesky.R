@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -108,7 +108,7 @@ for (i in 1:3) {
         } else {
           mm <- "iterative"
         }
-        t1 <- Sys.time()
+        t1 <- proc.time()[[3]]
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
                             likelihood = likelihood,num_ind_points = ii,cov_fct_taper_range = 0.016,                     
                             gp_approx = "full_scale_tapering",
@@ -119,7 +119,7 @@ for (i in 1:3) {
           gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
         }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
-        mat_time[iii,jj] <- Sys.time() - t1
+        mat_time[iii,jj] <- proc.time()[[3]] - t1
       }
       iii <- iii + 1
     }
@@ -138,7 +138,7 @@ for (i in 1:3) {
         } else {
           mm <- "iterative"
         }
-        t1 <- Sys.time()
+        t1 <- proc.time()[[3]]
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
                             likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = ii,                   
                             gp_approx = "full_scale_tapering",
@@ -149,7 +149,7 @@ for (i in 1:3) {
           gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
         }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
-        mat_time[iii,jj] <- Sys.time() - t1
+        mat_time[iii,jj] <- proc.time()[[3]] - t1
       }
       iii <- iii + 1
     }
@@ -187,7 +187,7 @@ for (i in 1:3) {
         } else {
           mm <- "iterative"
         }
-        t1 <- Sys.time()
+        t1 <- proc.time()[[3]]
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
                             likelihood = likelihood,num_ind_points = 500,cov_fct_taper_range = vec_taper_range2[iii],                       
                             gp_approx = "full_scale_tapering",
@@ -198,7 +198,7 @@ for (i in 1:3) {
           gp_model$set_optim_params(params = list(cg_preconditioner_type = "none"))
         }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
-        mat_time[iii,jj] <- Sys.time() - t1
+        mat_time[iii,jj] <- proc.time()[[3]] - t1
       }
       iii <- iii + 1
     }

@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("dplyr","ggpubr")
+packages <- c("dplyr","ggpubr","fields")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -21,14 +21,18 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Load_Data.R")
+#source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Real World/Load_Data.R")
 
 #####################################################
 # Comparison
 #####################################################
 
-dat_train <- as.matrix(data_train)
-dat_test <- as.matrix(data_test)
+#dat_train <- as.matrix(data_train)
+#dat_test <- as.matrix(data_test)
+
+dat_train <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_train_temp.txt"))
+dat_test <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_test_temp.txt"))
+
 y_test <- dat_test[,3]
 mat <- matrix(0,11,4)
 colnames(mat) <- c("Iterative FSA","Exact FSA","FITC","Tapering")

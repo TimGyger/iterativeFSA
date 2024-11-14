@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -39,7 +39,7 @@ sigma_error = 1
 
 ## Data
 # number of data points
-n <- 100000
+n <- 1000
 likelihood <- "gaussian"
 
 
@@ -50,9 +50,11 @@ likelihood <- "gaussian"
 # Effective ranges
 vec_ER <- c(0.5,0.2,0.05)
 # Number of inducing points
-vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)
+vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000) 
 # Taper Range
 vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017,0.0179,0.0188,0.0197)
+
+# Warning: When using a normal laptop use only up to 500 inducing points
 
 # Initialize matrices and vectors
 mat_NEGLL <- matrix(0,12,10)

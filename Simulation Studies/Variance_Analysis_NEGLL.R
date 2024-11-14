@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -38,7 +38,7 @@ smoothness <-  3/2
 sigma_error = 1
 
 ## Data
-n <- 8000
+n <- 100000
 likelihood <- "gaussian"
 
 
@@ -81,35 +81,10 @@ for (i in 1:3) {
   grid()
   coords_train <- X
   y_train <- Y
-  a <- Sys.time()
-  gp_model1 <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                         likelihood = likelihood,seed = 10, num_ind_points = 50,cov_fct_taper_range = 2,gp_approx = "vecchia",
-                         vecchia_ordering = "none",num_neighbors =20,
-                         y = y_train,params = list(maxit=8,trace=TRUE,optimizer_cov = "gradient_descent",
-                                                   init_cov_pars = c(0.5,0.7,0.5)))
+  gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
+                         likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                         y = y_train,params = list(maxit=0,trace=TRUE,optimizer_cov = "gradient_descent",init_cov_pars = c(1,1,arange)))
   
-  set.seed(2)
-  simdata <- sim_data(n = 10000,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = 1)
-  
-  # Y values
-  Y <- simdata[[1]]
-  # X values (locations)
-  X <- simdata[[2]]
-  # Actual number of data points
-  n <- dim(X)[1]
-  
-  ## Ordering
-  Y <- Y[order((X[,1])^2+(X[,2])^2)]
-  X <- X[order((X[,1])^2+(X[,2])^2),]
-  
-  ## Plot
-  quilt.plot(X[,1],X[,2],Y,nx = 200)
-  grid()
-  coords_test <- X
-  y_test <- Y
-  set_prediction_data(gp_model1,vecchia_pred_type = "order_obs_first_cond_obs_only")
-  pred21 <- predict(gp_model1,gp_coords_pred = coords_test, y = as.numeric(y_train), predict_var = T)
-  Sys.time()-a
   NEGLL <- gp_model$get_current_neg_log_likelihood()
   mat1 <- matrix(0,length(vec_samples),25)
   mat2 <- matrix(0,length(vec_samples),25)
@@ -152,27 +127,35 @@ for (i in 1:3) {
 ###################
 
 l_plots <- vector('list', 6)
-for (i in 1:6) {
-  mat_NEGLL <- l_mat[[i]]
-  mat_NEGLL2 <- cbind(vec_samples,mat_NEGLL)
-  data_mat <- as.data.frame(mat_NEGLL2)
+for (i in 1:3) {
+  mat_NEGLL <- l_mat[[2*i-1]]
+  mat_NEGLL2 <- l_mat[[2*i]]
+  mat <- cbind(c(rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25),
+                      rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25)),
+                      c(rep("FITC-P",6*25),rep("No Preconditioner",6*25)),
+                      c(t(mat_NEGLL[1,]),t(mat_NEGLL[2,]),t(mat_NEGLL[3,]),t(mat_NEGLL[4,]),
+                        t(mat_NEGLL[5,]),t(mat_NEGLL[6,]),
+                        t(mat_NEGLL2[1,]),t(mat_NEGLL2[2,]),t(mat_NEGLL2[3,]),t(mat_NEGLL2[4,]),
+                        t(mat_NEGLL2[5,]),t(mat_NEGLL2[6,])))
+  data_mat <- as.data.frame(mat)
+  data_mat$V1 <- as.numeric(data_mat$V1)
+  data_mat$V3 <- as.numeric(data_mat$V3)
   rownames(data_mat) <- NULL
-  colnames(data_mat)[1] <- c("x")
-  data_long <- reshape2::melt(data_mat, id = "x")
+  colnames(data_mat) <- c("x","Method","value")
   
   l_plots[[i]] <- local({
-    ggplot(data_long,            
-           aes(x = x,
+    ggplot(data_mat,            
+           aes(x = reorder(x,x),
                y = value,
-               color = variable)) +  geom_line() + geom_point() +  scale_colour_manual(values = c(2:3),name = "", 
-                                                                                       labels = c("FITC-P","No Preconditioner"))+
+               fill = Method)) +  geom_boxplot() + scale_colour_manual(values = c(rgb(1,0,0),
+                                                                                rgb(0,0,1)),name = "Method", 
+                                                                     labels = c("FITC-P","No Preconditioner")) +
       theme(
         legend.position="bottom",
         legend.background = element_rect(linetype="solid", 
                                          colour ="black")
       ) +
-      labs(x = "Number of Sample Vectors", y = "") +
-      scale_x_continuous(breaks =vec_samples) + scale_y_log10()
+      labs(x = "Number of Sample Vectors", y = "")
   })
 
 }

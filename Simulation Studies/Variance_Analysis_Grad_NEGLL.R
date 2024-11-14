@@ -21,7 +21,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 library(gpboost)
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulate_Data.R")
+source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
@@ -110,8 +110,8 @@ for (i in 1:2) {
                                                        cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[jj],
                                                        seed_rand_vec_trace = ii*10,reuse_rand_vec_trace = T,lr_cov = 1e-8, init_cov_pars = init_cov_pars))
       
-      vec_s[ii] <- abs((log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8-Var_para)/Var_para
-      vec_s1[ii] <- abs((log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8-Range_para)/Range_para
+      vec_s[ii] <- abs((log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8-Var_para)/abs(Var_para)
+      vec_s1[ii] <- abs((log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8-Range_para)/abs(Range_para)
       # If range very small change sign of 1e-8
     }
     Var_Mat_relerr[jj,i] <- mean(vec_s)
