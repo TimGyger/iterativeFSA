@@ -24,3 +24,28 @@ On a standard laptop, memory limitations may arise; therefore, it is recommended
 
 These computations can be time-intensive on typical hardware. Using Cholesky-based methods with the setting ```matrix_inversion_method = "iterative"``` can significantly accelerate the process. 
 However, note that this approach may yield a less accurate estimation of the negative log-likelihood.
+
+## Variance Analysis
+
+The script ```Variance_Analysis_NEGLL.R``` calculates the negative log-likelihood at the initial parameters for various numbers of sample vectors and generates box-plots. For the negative log-likelihood at the data-generating parameters remove ```initial_cov_pars = ...```.
+
+The script ```Variance_Analysis_Grad_NEGLL.R``` calculates the gradients of the negative log-likelihood at the initial parameters for various numbers of sample vectors and generates box-plots. For the negative log-likelihood at the data-generating parameters remove ```initial_cov_pars = ...```.
+
+Set ```n = 1000``` for faster computations.
+
+## Predictive Distribution
+
+The script ```Predictive_Distribution.R``` calculates the predictive mean and variances for different number of sample vectors and generates the table used for
+Figure 3 in the main mansucript.
+
+Set ```n = 1000``` for faster computations.
+
+## Estimation and Prediction
+
+The script ```GP_Inference.R``` estimates the parameters and calculates the predictive mean and variances for different number of sample vectors and generates the table used for Figure 4 in the main mansucript.
+
+Set ```n = 1000``` for faster computations.
+
+
+
+
