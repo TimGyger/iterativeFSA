@@ -13,4 +13,4 @@ The iterative methods for full-scale approximations are implemented in the **GPB
   Contains scripts to run the simulation experiments. Refer to the `README.md` file in the `simulation_studies` folder for a detailed description of the various simulations and how to execute them.
 
 - **`Real World Application`**  
-  Includes scripts for the real-world application on daytime land surface temperature data. Each subdirectory contains a `README.md` file with step-by-step instructions for running the corresponding analysis.
+  Includes scripts for the real-world application on daytime land surface temperature data.
