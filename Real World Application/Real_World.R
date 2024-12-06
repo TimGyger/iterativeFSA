@@ -34,8 +34,8 @@ dat_train <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/it
 dat_test <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_test_temp.txt"))
 
 y_test <- dat_test[,3]
-mat <- matrix(0,11,6)
-colnames(mat) <- c("Iterative FSA","Exact FSA","FITC","Tapering","Vecchia 30", "Vecchia 200")
+mat <- matrix(0,11,5)
+colnames(mat) <- c("Iterative FSA","Exact FSA","FITC","Tapering","Iterative Vecchia")
 rownames(mat) <- c("beta_0","beta_1","beta_2","sigma","sigma_1","rho","time1","RMSE","Log-Score","CRPS","time2")
 ###########################
 ### Iterative FSA
@@ -140,17 +140,19 @@ mat[11,4] <- time2
 
 pred4 <- pred
 ###########################
-### Vecchia 30
+### Iterative Vecchia
 ###########################
 
 a <- proc.time()[[3]]
-gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 10, gp_approx = "vecchia", num_neighbors = 30,
-                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs"))
+gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
+                       likelihood = "gaussian",seed = 10, gp_approx = "vecchia_latent", num_neighbors = 30,
+                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs",cg_delta_conv = 1,cg_preconditioner_type = "predictive_process_plus_diagonal",
+                                                       optimizer_cov = "lbfgs",
+                                                       cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,
+                                                       seed_rand_vec_trace = 10,reuse_rand_vec_trace = T,init_cov_pars = c(1,207531),init_aux_pars = 1,piv_chol_rank = 500))
 
-mat[1:7,5] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
-
-aa <- proc.time()[[3]]
+mat[1:7,5] <- c(gp_model$get_coef(),gp_model$get_aux_pars(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
+gp_model$set_prediction_data(nsim_var_pred = 500)
 pred <- predict(X_pred = as.matrix(cbind(rep(1,nrow(dat_test)),dat_test[,1:2])),gp_model, gp_coords_pred = as.matrix(dat_test[,1:2]), predict_var = T,y = dat_train[,3])
 time2 <- proc.time()[[3]]-aa
 
@@ -163,30 +165,6 @@ mat[11,5] <- time2
 
 pred5 <- pred
 
-###########################
-### Vecchia 120
-###########################
-
-a <- proc.time()[[3]]
-gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2])),gp_coords = dat_train[,1:2], cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
-                       likelihood = "gaussian",seed = 10, gp_approx = "vecchia", num_neighbors = 200,
-                       y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs"))
-
-mat[1:7,6] <- c(gp_model$get_coef(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
-
-aa <- proc.time()[[3]]
-pred <- predict(X_pred = as.matrix(cbind(rep(1,nrow(dat_test)),dat_test[,1:2])),gp_model, gp_coords_pred = as.matrix(dat_test[,1:2]), predict_var = T,y = dat_train[,3])
-time2 <- proc.time()[[3]]-aa
-
-mat[8,6] <- sqrt(mean((pred$mu-y_test)^2))
-mat[9,6] <- -mean(dnorm(y_test,pred$mu,sqrt(pred$var), log = T))
-help_vec <- dnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
-help_vec2 <- pnorm((y_test-pred$mu)/sqrt(pred$var),rep(0,length(pred$mu)),rep(1,length(pred$mu)))
-mat[10,6] <- -mean(sqrt(pred$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred$mu)/sqrt(pred$var))*(2*help_vec2-1)))
-mat[11,6] <- time2
-
-pred6 <- pred
-
 
 ########################
 ### Table
@@ -198,19 +176,17 @@ print(mat)
 ### Plots
 #########################
 
-z1 <- c(min(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu,pred6$mu),
-        max(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu,pred6$mu))
+z1 <- c(min(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu),
+        max(pred1$mu,pred2$mu,pred3$mu,pred4$mu,pred5$mu))
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred1$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Test Data",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred2$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred3$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Tapering",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred4$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="FITC",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
-quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 30",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
-quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred6$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 200",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$mu,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative Vecchia",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7,zlim = z1)
 
 
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred1$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred2$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Cholesky-FSA",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred3$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Tapering",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
 quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred4$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="FITC",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
-quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 30",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
-quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred6$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Vecchia 200",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
+quilt.plot(dat_test[,1]/1000,dat_test[,2]/1000,pred5$var,nx = 400,ny = 400,legend.width = 0.5,xlab = "Easting (km)",ylab = "Northing (km)",main="Iterative Vecchia",cex.axis=1.3,axis.args=list(cex.axis=1.3),cex.lab=1.3, cex.main=1.7)
