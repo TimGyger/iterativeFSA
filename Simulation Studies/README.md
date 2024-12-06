@@ -19,7 +19,7 @@ On a standard laptop, memory limitations may arise; therefore, it is recommended
 
 ## Choice of full-scale approximation parameters
 
-The script ```Model_Parameter.R``` calculates the negative log-likelihood at the data-generating parameters for various numbers of inducing points and taper ranges and generates Figure 1 in the Appendix ```Choice of full-scale approximation parameters```. 
+The script ```Model_Parameter.R``` calculates the negative log-likelihood at the data-generating parameters for various numbers of inducing points and taper ranges and generates Figure SM1 in the Appendix ```Choice of full-scale approximation parameters```. 
 On a standard laptop, memory limitations may arise; therefore, it is recommended to use no more than 500 inducing points to prevent such issues.
 
 These computations can be time-intensive on typical hardware. Using Cholesky-based methods with the setting ```matrix_inversion_method = "iterative"``` can significantly accelerate the process. 
@@ -27,9 +27,9 @@ However, note that this approach may yield a less accurate estimation of the neg
 
 ## Variance Analysis
 
-The script ```Variance_Analysis_NEGLL.R``` calculates the negative log-likelihood at the initial parameters for various numbers of sample vectors and generates box-plots. For the negative log-likelihood at the data-generating parameters remove ```initial_cov_pars = ...```.
+The script ```Variance_Analysis_NEGLL.R``` calculates the negative log-likelihood at the data-generating parameters for various numbers of sample vectors and generates box-plots. For the negative log-likelihood at the initial parameters remove ```initial_cov_pars = ...```. It generates Figures SM3 - SM5 in the Appendix.
 
-The script ```Variance_Analysis_Grad_NEGLL.R``` calculates the gradients of the negative log-likelihood at the initial parameters for various numbers of sample vectors and generates box-plots. For the negative log-likelihood at the data-generating parameters remove ```initial_cov_pars = ...```.
+The script ```Variance_Analysis_Grad_NEGLL.R``` calculates the gradients of the negative log-likelihood at the data-generating parameters for various numbers of sample vectors and generates box-plots. It generates Figures SM6 - SM8 in the Appendix.
 
 Set ```n = 1000``` for faster computations.
 
@@ -48,8 +48,8 @@ Set ```n = 1000``` for faster computations.
 
 ## Preconditioner Comparison for Vecchia approximation
 
-The script ```Comparison_Preconditioner_Vecchia.R``` compares FITC, pivoted Cholesky, and Vecchia approximation with diagonal update (VADU) preconditioners in terms of runtime and the variance of marginal likelihood estimates. Set ```n = 1000``` for faster computations.
+The script ```Comparison_Preconditioner_Vecchia.R``` compares FITC, pivoted Cholesky, and Vecchia approximation with diagonal update (VADU) preconditioners in terms of runtime and the variance of marginal likelihood estimates. Set ```n = 1000``` for faster computations. It generates Figures SM6 - SM8 in the Appendix.
 
-The script ```FITC_vs_pivotedCholesky_Vecchia.R``` compares FITC and pivoted Cholesky preconditioners in terms of runtime and the variance of marginal likelihood estimates for various ranks and number of inducing points. Set ```n = 1000``` for faster computations.
+The script ```FITC_vs_pivotedCholesky_Vecchia.R``` compares FITC and pivoted Cholesky preconditioners in terms of runtime and the variance of marginal likelihood estimates for various ranks and number of inducing points. Set ```n = 1000``` for faster computations. It generates Figure 6 in the main manuscript and Figures SM9 - SM10 in the Appendix.
 
 
