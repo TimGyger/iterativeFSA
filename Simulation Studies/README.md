@@ -46,6 +46,10 @@ The script ```GP_Inference.R``` estimates the parameters and calculates the pred
 
 Set ```n = 1000``` for faster computations.
 
+## Preconditioner Comparison for Vecchia approximation
 
+The script ```Comparison_Preconditioner_Vecchia.R`` compares FITC, pivoted Cholesky, and Vecchia approximation with diagonal update (VADU) preconditioners in terms of runtime and the variance of marginal likelihood estimates. Set ```n = 1000``` for faster computations.
+
+The script ```FITC_vs_pivotedCholesky_Vecchia.R`` compares FITC and pivoted Cholesky preconditioners in terms of runtime and the variance of marginal likelihood estimates for various ranks and number of inducing points. Set ```n = 1000``` for faster computations.
 
 
