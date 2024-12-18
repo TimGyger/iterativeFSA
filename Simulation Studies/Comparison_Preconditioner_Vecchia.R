@@ -65,7 +65,7 @@ make_data <- function(n,
 }
 
 sigma2_true <- 1
-rho_true <- 0.05 #other ranges considered: 0.01, 0.25
+rho_true <- 0.25 #other ranges considered: 0.01, 0.25
 true_covpars <- c(sigma2_true, rho_true)
 n <- 100000
 NN <- 20
@@ -81,9 +81,8 @@ mydata <- make_data(n=n,
 
 ################################################################################
 NUM_RAND_VEC_TRACE <- c(10, 20, 50, 100)
-PRECONDITIONER <- c("piv_chol_on_Sigma", "Sigma_inv_plus_BtWB","predictive_process_plus_diagonal_200",
-                    "predictive_process_plus_diagonal_500")
-n_rep <- 100
+PRECONDITIONER <- c("piv_chol_on_Sigma", "Sigma_inv_plus_BtWB","predictive_process_plus_diagonal_200")
+n_rep <- 10
 
 VLresult <- NA
 VLtime <- NA
@@ -101,7 +100,7 @@ for(p in 1:length(PRECONDITIONER)){
       print(p)
       print(t)
       print(r)
-      Itmodel <- GPModel(gp_coords = mydata[,1:2],
+      Itmodel <- GPModel(gp_coords = mydata$coords[,1:2],
                          cov_function = "matern",
                          cov_fct_shape=1.5,
                          likelihood="bernoulli_logit",
@@ -132,7 +131,7 @@ for(p in 1:length(PRECONDITIONER)){
       
       Itresults$preconditioner[i] <- PRECONDITIONER[p]
       Itresults$t[i] <- NUM_RAND_VEC_TRACE[t]
-      Itresults$time[i] <- system.time(Itresults$negLL[i] <- Itmodel$neg_log_likelihood(cov_pars=true_covpars, y=mydata[,4]))[3]
+      Itresults$time[i] <- system.time(Itresults$negLL[i] <- Itmodel$neg_log_likelihood(cov_pars=true_covpars, y=mydata$y))[3]
       
       i = i+1
       gc()
@@ -144,7 +143,7 @@ for(p in 1:length(PRECONDITIONER)){
 ################################################################################
 #Cholesky-VL
 
-VLmodel <- GPModel(gp_coords = mydata[,1:2],
+VLmodel <- GPModel(gp_coords = mydata$coords[,1:2],
                    cov_function = "matern",
                    cov_fct_shape=1.5,
                    likelihood="bernoulli_logit",
@@ -156,7 +155,7 @@ VLmodel <- GPModel(gp_coords = mydata[,1:2],
 VLmodel$set_optim_params(params = list(maxit=1,
                                        trace=TRUE))
 
-VLtime <- system.time(VLresult <- VLmodel$neg_log_likelihood(cov_pars=true_covpars, y=mydata[,4]))[3]
+VLtime <- system.time(VLresult <- VLmodel$neg_log_likelihood(cov_pars=true_covpars, y=mydata$y))[3]
 
 ################################################################################
 # Plotting
@@ -169,14 +168,13 @@ library(grid)
 Itresults$preconditioner[Itresults$preconditioner=="Sigma_inv_plus_BtWB"] <- "P[VADU]"
 Itresults$preconditioner[Itresults$preconditioner=="piv_chol_on_Sigma"] <- "P[LRAC]"
 Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal_200"] <- "P[FITC_200]"
-Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal_500"] <- "P[FITC_500]"
-Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[VADU]", "P[LRAC]","P[FITC_200]","P[FITC_500]"), ordered=TRUE)
+Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[VADU]", "P[LRAC]","P[FITC_200]"), ordered=TRUE)
 Itresults$t <- as.factor(Itresults$t)
 
 p1 <- ggplot(Itresults, aes(x=t, y=negLL, fill=preconditioner)) + 
   geom_hline(yintercept=VLresult, linetype = "dashed") +  
   geom_boxplot() + labs(fill  = "") + ylab("log-likelihood") +
-  scale_fill_brewer(type = "qual", palette=6, labels = c("VADU", "Pivoted Cholesky", "FITC (m = 200)", "FITC (m = 500)")) +
+  scale_fill_brewer(type = "qual", palette=6, labels = c("VADU", "Pivoted Cholesky", "FITC (m = 200)")) +
   theme_bw() + theme(axis.title.x=element_blank(),
                      text = element_text(size=20),
                      axis.text.x=element_blank(), 
@@ -192,8 +190,8 @@ p2 <- ggplot(Itresults, aes(x=t, y=time, color=preconditioner, shape=preconditio
   scale_shape_manual(values = c(1,2,3,4), labels = scales::parse_format()) +
   theme_bw() + theme(legend.position = "none",text = element_text(size=20), axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0))) +
   ylab("Time (s)") +
-  scale_y_log10(breaks = c(2,5,10,15,20)) +
-  xlab("Number of sample vectors") + annotate(geom="text", x=0.8, y=35, label=paste("Cholesky:",VLtime,"s"),
+  scale_y_log10(breaks = c(2,5,10,15,20,30,50,100)) +
+  xlab("Number of sample vectors") + annotate(geom="text", x=0.8, y=95, label=paste("Cholesky:",round(VLtime),"s"),
                                               color="black",size = 5)
 
 grid.newpage()

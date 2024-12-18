@@ -120,6 +120,7 @@ for (i in 1:3) {
         }
         NEGLL <- gp_model$neg_log_likelihood(y = y_train,cov_pars = init_cov_pars)
         mat_time[iii,jj] <- proc.time()[[3]] - t1
+        gc()
       }
       iii <- iii + 1
     }
@@ -216,16 +217,16 @@ l_plots <- vector('list', 3)
 for (i in 1:3) {
   if(i == 1){
     xxlab <- "Number of inducing points"
-    vec <- vec_ind_points + 1
+    vec <- vec_ind_points 
     vec1 <- vec
   } else if(i == 2){
     xxlab <- "Average number of nonzero entries per row"
-    vec <- vec_taper_range
+    vec <- c(1:12)*10
     vec1 <- vec
   } else {
     xxlab <- "Sample size in thousands"
     vec <- n_vec
-    vec1 <- vec/1000
+    vec1 <- vec[-1]
   }
   mat_NEGLL1 <- l_mat[[i]]
   mat_NEGLL2 <- cbind(vec,mat_NEGLL1)
