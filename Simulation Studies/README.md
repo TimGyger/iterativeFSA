@@ -48,8 +48,8 @@ Set ```n = 1000``` for faster computations.
 
 ## Preconditioner Comparison for Vecchia approximation
 
-The script ```Comparison_Preconditioner_Vecchia.R``` compares FITC, pivoted Cholesky, and Vecchia approximation with diagonal update (VADU) preconditioners in terms of runtime and the variance of marginal likelihood estimates. Set ```n = 1000``` for faster computations. It generates Figures SM6 - SM8 in the Appendix.
+The script ```Comparison_Preconditioner_Vecchia.R``` compares FITC, pivoted Cholesky, and Vecchia approximation with diagonal update (VADU) preconditioners in terms of runtime and the variance of marginal likelihood estimates. Set ```n = 1000``` for faster computations. It generates Figure 7 in the main manuscript.
 
-The script ```FITC_vs_pivotedCholesky_Vecchia.R``` compares FITC and pivoted Cholesky preconditioners in terms of runtime and the variance of marginal likelihood estimates for various ranks and number of inducing points. Set ```n = 1000``` for faster computations. It generates Figure 6 in the main manuscript and Figures SM9 - SM10 in the Appendix.
+The script ```FITC_vs_pivotedCholesky_Vecchia.R``` compares FITC and pivoted Cholesky preconditioners in terms of runtime and the variance of marginal likelihood estimates for various ranks and number of inducing points. Set ```n = 1000``` for faster computations. It generates Figure 6 in the main manuscript.
 
 
