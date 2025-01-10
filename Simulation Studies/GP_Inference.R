@@ -7,7 +7,7 @@
 #######
 
 # Package names
-packages <- c("fields","ggplot2", "dplyr","RandomFields")
+packages <- c("fields","ggplot2", "dplyr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
