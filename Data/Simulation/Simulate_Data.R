@@ -16,12 +16,20 @@ if (any(installed_packages == FALSE)) {
 invisible(lapply(packages, library, character.only = TRUE))
 
 # RandomFields
-install.packages(
-  "https://cran.r-project.org/src/contrib/Archive/RandomFields/RandomFields_3.3.14.tar.gz",
-  repos = NULL,
-  type = "source"
-)
+if (!requireNamespace("RandomFields", quietly = TRUE)) {
+  install.packages(
+    "https://cran.r-project.org/src/contrib/Archive/RandomFields/RandomFields_3.3.14.tar.gz",
+    repos = NULL,
+    type = "source"
+  )
+}
 library(RandomFields)
+
+# Or:
+# install.packages("remotes")
+# library(remotes)
+# install_version("RandomFieldsUtils", "1.2.5")
+# install_version("RandomFields", "3.3.14")
 
 ### Function for simulating Data
 sim_data <- function(n,smoothness = 3/2, Covfunct = "matern",range_param,sigma_param,sigma_error,seed) {
