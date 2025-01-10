@@ -30,6 +30,7 @@ library(RandomFields)
 # library(remotes)
 # install_version("RandomFieldsUtils", "1.2.5")
 # install_version("RandomFields", "3.3.14")
+# library(RandomFields)
 
 ### Function for simulating Data
 sim_data <- function(n,smoothness = 3/2, Covfunct = "matern",range_param,sigma_param,sigma_error,seed) {
