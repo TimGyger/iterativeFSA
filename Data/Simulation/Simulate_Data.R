@@ -4,7 +4,7 @@
 
 ### Install/Load Packages
 # Package names
-packages <- c("fields","ggplot2", "dplyr","RandomFields")
+packages <- c("fields","ggplot2", "dplyr")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -15,6 +15,13 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
+# RandomFields
+install.packages(
+  "https://cran.r-project.org/src/contrib/Archive/RandomFields/RandomFields_3.3.14.tar.gz",
+  repos = NULL,
+  type = "source"
+)
+library(RandomFields)
 
 ### Function for simulating Data
 sim_data <- function(n,smoothness = 3/2, Covfunct = "matern",range_param,sigma_param,sigma_error,seed) {
