@@ -6,19 +6,11 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr","ggpubr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
+#######
+## Data
+#######
 
 # Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
@@ -26,6 +18,9 @@ source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simu
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -39,6 +34,9 @@ sigma_error = 1
 
 ## Data
 n <- 100000
+if (Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 # Effective Range
@@ -85,12 +83,24 @@ if (likelihood == "gaussian") {
 vec_ER <- c(0.2,0.05,0.01)
 # Number of inducing points
 vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000)
+if(Toy){
+  vec_ind_points <- c(10,20,50,100,150,100,200,300,400,500)
+}
 # Taper Range
 vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017,0.0179,0.0188,0.0197)
+if(Toy){
+  vec_taper_range <- vec_taper_range*4
+}
 # sample size
 n_vec <- c(10,20,50,80,100,150,200)*1000
+if(Toy){
+  n_vec <- c(2,3,4,5,6,8,10)*1000
+}
 # Taper range 2
 vec_taper_range2 <- c(0.05,0.036,0.0227,0.0179,0.016,0.013,0.0113)
+if(Toy){
+  vec_taper_range2 <- c(0.05,0.036,0.0227,0.0179,0.016,0.013,0.0113)*4
+}
 # Initialize list
 l_mat <- list()
 ind <- 1
@@ -108,9 +118,13 @@ for (i in 1:3) {
         } else {
           mm <- "iterative"
         }
+        cov_fct_taper_range <- 0.016
+        if (Toy){
+          cov_fct_taper_range <- 0.052
+        }
         t1 <- proc.time()[[3]]
         gp_model <- GPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,cov_fct_taper_shape = 2,
-                            likelihood = likelihood,num_ind_points = ii,cov_fct_taper_range = 0.016,                     
+                            likelihood = likelihood,num_ind_points = ii,cov_fct_taper_range = cov_fct_taper_range,                     
                             gp_approx = "full_scale_tapering",
                             matrix_inversion_method = mm,seed = 10)
         if (jj == 3){
@@ -220,8 +234,8 @@ for (i in 1:3) {
     vec <- vec_ind_points 
     vec1 <- vec
   } else if(i == 2){
-    xxlab <- "Average number of nonzero entries per row"
-    vec <- c(1:12)*10
+    xxlab <- "gamma"
+    vec <- round(vec_taper_range,3)
     vec1 <- vec
   } else {
     xxlab <- "Sample size in thousands"

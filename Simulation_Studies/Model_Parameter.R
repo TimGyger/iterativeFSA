@@ -6,26 +6,21 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr","ggpubr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#######
+## Data
+#######
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
-
-# Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
+
 
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -38,8 +33,10 @@ smoothness <-  3/2
 sigma_error = 1
 
 ## Data
-# number of data points
-n <- 1000
+n <- 100000
+if(Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 
@@ -51,9 +48,14 @@ likelihood <- "gaussian"
 vec_ER <- c(0.5,0.2,0.05)
 # Number of inducing points
 vec_ind_points <- c(100,200,300,400,500,600,700,800,900,1000) 
+if(Toy){
+  vec_ind_points <- vec_ind_points/2
+}
 # Taper Range
 vec_taper_range <- c(0.0055,0.0079,0.0098,0.0112,0.0126,0.0138,0.015,0.016,0.017,0.0179,0.0188,0.0197)
-
+if(Toy){
+  vec_taper_range <- vec_taper_range*3.4
+}
 # Warning: When using a normal laptop use only up to 500 inducing points
 
 # Initialize matrices and vectors
@@ -124,34 +126,61 @@ for (i in vec_ER) {
 ###################
 
 AP_plots <- vector('list', 3)
-for (i in 1:3) {
-  
-  mat_NEGLL1 <- l_ap[[i]]
-  mat_NEGLL2 <- cbind(c(1:12)*10,mat_NEGLL1)
-  data_mat <- as.data.frame(mat_NEGLL2)
-  rownames(data_mat) <- NULL
-  colnames(data_mat)[1] <- c("x")
-  data_long <- reshape2::melt(data_mat, id = "x")
-  
-  AP_plots[[i]] <- local({
-    ggplot(data_long,            
-           aes(x = x,
-               y = value,
-               color = variable)) +  geom_line() + geom_point() +  scale_colour_grey(start = 0, end = 0.8,name = "Number of inducing points", 
-                                                                                     labels = c("100","200","300","400","500","600","700","800",
-                                                                                                "900","1000"))+
-      theme(
-        legend.position="bottom",
-        legend.background = element_rect(linetype="solid", 
-                                         colour ="black")
-      ) +
-      labs(x = "Average number of non-zeros per row", y = "NEGLL") +
-      scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100,110,120))
-  })
-  
+if(Toy){
+  for (i in 1:3) {
+    
+    mat_NEGLL1 <- l_ap[[i]]
+    mat_NEGLL2 <- cbind(c(1:12)*10,mat_NEGLL1)
+    data_mat <- as.data.frame(mat_NEGLL2)
+    rownames(data_mat) <- NULL
+    colnames(data_mat)[1] <- c("x")
+    data_long <- reshape2::melt(data_mat, id = "x")
+    
+    AP_plots[[i]] <- local({
+      ggplot(data_long,            
+             aes(x = x,
+                 y = value,
+                 color = variable)) +  geom_line() + geom_point() +  scale_colour_grey(start = 0, end = 0.8,name = "Number of inducing points", 
+                                                                                       labels = c("50","100","150","200","250","300","350","400",
+                                                                                                  "450","500"))+
+        theme(
+          legend.position="bottom",
+          legend.background = element_rect(linetype="solid", 
+                                           colour ="black")
+        ) +
+        labs(x = "Average number of non-zeros per row", y = "NEGLL") +
+        scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100,110,120))
+    })
+    
+  }
+  ggarrange(AP_plots[[1]], AP_plots[[2]], AP_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
+}else {
+  for (i in 1:3) {
+    
+    mat_NEGLL1 <- l_ap[[i]]
+    mat_NEGLL2 <- cbind(c(1:12)*10,mat_NEGLL1)
+    data_mat <- as.data.frame(mat_NEGLL2)
+    rownames(data_mat) <- NULL
+    colnames(data_mat)[1] <- c("x")
+    data_long <- reshape2::melt(data_mat, id = "x")
+    
+    AP_plots[[i]] <- local({
+      ggplot(data_long,            
+             aes(x = x,
+                 y = value,
+                 color = variable)) +  geom_line() + geom_point() +  scale_colour_grey(start = 0, end = 0.8,name = "Number of inducing points", 
+                                                                                       labels = c("100","200","300","400","500","600","700","800",
+                                                                                                  "900","1000"))+
+        theme(
+          legend.position="bottom",
+          legend.background = element_rect(linetype="solid", 
+                                           colour ="black")
+        ) +
+        labs(x = "Average number of non-zeros per row", y = "NEGLL") +
+        scale_x_continuous(breaks = c(10,20,30,40,50,60,70,80,90,100,110,120))
+    })
+    
+  }
+  ggarrange(AP_plots[[1]], AP_plots[[2]], AP_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
 }
-ggarrange(AP_plots[[1]], AP_plots[[2]], AP_plots[[3]], ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
-
-
-
 

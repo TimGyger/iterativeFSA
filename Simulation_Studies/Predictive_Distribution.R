@@ -6,26 +6,20 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr","ggpubr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#######
+## Data
+#######
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
-
-# Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -39,6 +33,9 @@ sigma_error = 1
 
 ## Data
 n <- 100000
+if(Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 # Effective Range
@@ -95,6 +92,9 @@ y_test <- Y
 
 # Number of sample vectors / Rank
 vec_samples <- c(50,200,500,1000,2000,5000)
+if(Toy){
+  vec_samples <- c(50,100,150,200,300,500)
+}
 # Initialize matrix
 mat <- matrix(0,24,2)
 rownames(mat) <- c("Log-Score 50","CRPS 50","RMSE 50","Time 50",
@@ -103,6 +103,14 @@ rownames(mat) <- c("Log-Score 50","CRPS 50","RMSE 50","Time 50",
                    "Log-Score 1000","CRPS 1000","RMSE 1000","Time 1000",
                    "Log-Score 2000","CRPS 2000","RMSE 2000","Time 2000",
                    "Log-Score 5000","CRPS 5000","RMSE 5000","Time 5000")
+if(Toy){
+  rownames(mat) <- c("Log-Score 50","CRPS 50","RMSE 50","Time 50",
+                     "Log-Score 100","CRPS 100","RMSE 100","Time 100",
+                     "Log-Score 150","CRPS 150","RMSE 150","Time 150",
+                     "Log-Score 200","CRPS 200","RMSE 200","Time 200",
+                     "Log-Score 300","CRPS 300","RMSE 300","Time 300",
+                     "Log-Score 500","CRPS 500","RMSE 500","Time 500")
+}
 colnames(mat) <- c("Stochastic","Cholesky")
 mat_var <- mat
 gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "cholesky",
@@ -117,8 +125,12 @@ help_vec2 <- pnorm((y_test-pred_Chol$mu)/sqrt(pred_Chol$var),rep(0,length(pred_C
 mat[2,2] <- -mean(sqrt(pred_Chol$var)*(1/sqrt(pi)-2*help_vec-((y_test-pred_Chol$mu)/sqrt(pred_Chol$var))*(2*help_vec2-1)))
 k <- 0
 for (ii in 1:length(vec_samples)) {
-  mat_rep <- matrix(0,4,25)
-  for (jj in 1:25) {
+  num_it <- 25
+  if(Toy){
+    num_it <- 10
+  }
+  mat_rep <- matrix(0,4,num_it)
+  for (jj in 1:num_it) {
     gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
                            likelihood = likelihood,seed = 10*jj, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
                            y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,init_cov_pars = c(1,1,arange),
@@ -145,3 +157,6 @@ for (ii in 1:length(vec_samples)) {
   mat_var[k+2,1] <- var(mat_rep[4,])
   k <- k + 4
 }
+
+print(mat)
+print(mat_var)

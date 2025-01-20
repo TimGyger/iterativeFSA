@@ -6,26 +6,20 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#######
+## Data
+#######
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
-
-# Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -39,6 +33,9 @@ sigma_error = 1
 
 ## Data
 n <- 100000
+if(Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 # Effective Range
@@ -103,9 +100,15 @@ for (ii in 1:num_samples) {
     } else {
       mim <- "iterative"
     }
+    cov_fct_taper_range <- 0.016
+    num_ind_points <- 500
+    if(Toy){
+      cov_fct_taper_range <- 0.052
+      num_ind_points <- 200
+    }
     t1 <- Sys.time()
     gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = mim,
-                           likelihood = likelihood,seed = 10, num_ind_points = 500,cov_fct_taper_range = 0.016,gp_approx = "full_scale_tapering",
+                           likelihood = likelihood,seed = 10, num_ind_points = num_ind_points,cov_fct_taper_range = cov_fct_taper_range,gp_approx = "full_scale_tapering",
                            y = y_train,params = list(maxit=100,trace=TRUE,cg_delta_conv = 0.001,optimizer_cov = "lbfgs",
                                                                              cg_preconditioner_type = "predictive_process_plus_diagonal",
                                                                              cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,

@@ -6,26 +6,20 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr","rlist","ggpubr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#######
+## Data
+#######
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
-
-# Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -39,6 +33,9 @@ sigma_error = 1
 
 ## Data
 n <- 100000
+if(Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 # Effective Range
@@ -78,6 +75,9 @@ y_train <- Y
 vec_ER <- c(0.2,0.05,0.01)
 # Number of sample vectors
 vec_samples <- c(5,10,30,50,80,100)
+if(Toy){
+  vec_samples <- c(5,10,20,30,40,50)
+}
 # Initialize list
 l_mat <- list()
 
@@ -93,6 +93,9 @@ gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct
 Var_para <- (log(1)-log(gp_model$get_cov_pars()[2]/gp_model$get_cov_pars()[1]))/1e-8
 Range_para <- (log(gp_model$get_optim_params()$init_cov_pars[3])-log(gp_model$get_cov_pars()[3]))/-1e-8
 num_trials <- 25
+if(Toy){
+  num_trials <- 10
+}
 for (i in 1:2) {
   prec <- "predictive_process_plus_diagonal"
   if(i == 2){

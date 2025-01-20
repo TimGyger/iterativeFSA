@@ -6,26 +6,20 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("fields","ggplot2", "dplyr","ggpubr")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#######
+## Data
+#######
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
-
-# Function for Simulating Data
 source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
 #####################################################
+
+### Toy example
+Toy <- TRUE
 
 ## Covariance Function
 # sigma
@@ -39,6 +33,9 @@ sigma_error = 1
 
 ## Data
 n <- 100000
+if(Toy){
+  n <- 10000
+}
 likelihood <- "gaussian"
 
 
@@ -51,6 +48,9 @@ likelihood <- "gaussian"
 vec_ER <- c(0.5,0.2,0.05)
 # Number of sample vectors
 vec_samples <- c(5,10,30,50,80,100)
+if(Toy){
+  vec_samples <- c(5,10,20,30,40,50)
+}
 # Initialize list
 l_mat <- list()
 ind <- 1
@@ -86,12 +86,16 @@ for (i in 1:3) {
                          y = y_train,params = list(maxit=0,trace=TRUE,optimizer_cov = "gradient_descent",init_cov_pars = c(1,1,arange)))
   
   NEGLL <- gp_model$get_current_neg_log_likelihood()
-  mat1 <- matrix(0,length(vec_samples),25)
-  mat2 <- matrix(0,length(vec_samples),25)
+  num_trials <- 25
+  if(Toy){
+    num_trials <- 10
+  }
+  mat1 <- matrix(0,length(vec_samples),num_trials)
+  mat2 <- matrix(0,length(vec_samples),num_trials)
   for (ii in 1:length(vec_samples)) {
     for (j in 1:2){
-      vec_s <- rep(0,25)
-      for (jj in 1:25){
+      vec_s <- rep(0,num_trials)
+      for (jj in 1:num_trials){
         
         if (j == 2){
           gp_model <- fitGPModel(gp_coords = coords_train, cov_function = "matern",cov_fct_shape = 1.5,matrix_inversion_method = "iterative",
@@ -107,7 +111,7 @@ for (i in 1:3) {
                                  y = y_train,params = list(maxit=0,trace=TRUE,cg_delta_conv = 0.001,optimizer_cov = "gradient_descent",
                                                            cg_preconditioner_type = "none",
                                                            cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = vec_samples[ii],
-                                                           seed_rand_vec_trace = jj*10,reuse_rand_vec_trace = T,init_cov_pars = c(1,1,arange)))
+                                                           seed_rand_vec_trace = jj*10,reuse_rand_vec_trace = T))
           mat2[ii,jj] <- (gp_model$get_current_neg_log_likelihood()-NEGLL)/NEGLL
         }
         
@@ -130,13 +134,24 @@ l_plots <- vector('list', 6)
 for (i in 1:3) {
   mat_NEGLL <- l_mat[[2*i-1]]
   mat_NEGLL2 <- l_mat[[2*i]]
-  mat <- cbind(c(rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25),
-                      rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25)),
-                      c(rep("FITC-P",6*25),rep("No Preconditioner",6*25)),
-                      c(t(mat_NEGLL[1,]),t(mat_NEGLL[2,]),t(mat_NEGLL[3,]),t(mat_NEGLL[4,]),
-                        t(mat_NEGLL[5,]),t(mat_NEGLL[6,]),
-                        t(mat_NEGLL2[1,]),t(mat_NEGLL2[2,]),t(mat_NEGLL2[3,]),t(mat_NEGLL2[4,]),
-                        t(mat_NEGLL2[5,]),t(mat_NEGLL2[6,])))
+  
+  if(Toy){
+    mat <- cbind(c(rep(5,10),rep(10,10),rep(30,10),rep(50,10),rep(80,10),rep(100,10),
+                   rep(5,10),rep(10,10),rep(30,10),rep(50,10),rep(80,10),rep(100,10)),
+                 c(rep("FITC-P",6*10),rep("No Preconditioner",6*10)),
+                 c(t(mat_NEGLL[1,]),t(mat_NEGLL[2,]),t(mat_NEGLL[3,]),t(mat_NEGLL[4,]),
+                   t(mat_NEGLL[5,]),t(mat_NEGLL[6,]),
+                   t(mat_NEGLL2[1,]),t(mat_NEGLL2[2,]),t(mat_NEGLL2[3,]),t(mat_NEGLL2[4,]),
+                   t(mat_NEGLL2[5,]),t(mat_NEGLL2[6,])))
+  } else {
+    mat <- cbind(c(rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25),
+                   rep(5,25),rep(10,25),rep(30,25),rep(50,25),rep(80,25),rep(100,25)),
+                 c(rep("FITC-P",6*25),rep("No Preconditioner",6*25)),
+                 c(t(mat_NEGLL[1,]),t(mat_NEGLL[2,]),t(mat_NEGLL[3,]),t(mat_NEGLL[4,]),
+                   t(mat_NEGLL[5,]),t(mat_NEGLL[6,]),
+                   t(mat_NEGLL2[1,]),t(mat_NEGLL2[2,]),t(mat_NEGLL2[3,]),t(mat_NEGLL2[4,]),
+                   t(mat_NEGLL2[5,]),t(mat_NEGLL2[6,])))
+  }
   data_mat <- as.data.frame(mat)
   data_mat$V1 <- as.numeric(data_mat$V1)
   data_mat$V3 <- as.numeric(data_mat$V3)

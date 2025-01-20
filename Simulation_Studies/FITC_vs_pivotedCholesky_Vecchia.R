@@ -1,14 +1,12 @@
 ################################################################################
-### Preconditioner Comparison (Vecchia)
+### Preconditioner Comparison by rank (Vecchia) 
 ################################################################################
 
+#######
+## Packages
+#######
 
-library(gpboost)
-library(RandomFields)
-# install.packages("remotes")
-# library(remotes)
-# install_version("RandomFieldsUtils", "1.2.5")
-# install_version("RandomFields", "3.3.14")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
 ################################################################################
 #Generate data
@@ -64,10 +62,16 @@ make_data <- function(n,
   list(y=y, coords=coords, b=b, X=X)
 }
 
+### Toy example
+Toy <- TRUE
+
 sigma2_true <- 1
-rho_true <- 0.25 #other ranges considered: 0.01, 0.25
+rho_true <- 0.05 #other ranges considered: 0.01, 0.25
 true_covpars <- c(sigma2_true, rho_true)
 n <- 100000
+if(Toy){
+  n <- 10000
+}
 NN <- 20
 
 set.seed(1)
@@ -80,14 +84,19 @@ mydata <- make_data(n=n,
                     with_fixed_effects=FALSE)
 
 ################################################################################
-NUM_RAND_VEC_TRACE <- c(10, 20, 50, 100)
-PRECONDITIONER <- c("piv_chol_on_Sigma", "Sigma_inv_plus_BtWB","predictive_process_plus_diagonal_200")
-n_rep <- 10
-
+rank <- c(10, 20, 50, 100, 200, 500, 1000)
+if(Toy){
+  rank <- c(10, 20, 50, 80, 100, 200, 300)
+}
+PRECONDITIONER <- c("piv_chol_on_Sigma", "predictive_process_plus_diagonal")
+n_rep <- 100
+if(Toy){
+  n_rep <- 30
+}
 VLresult <- NA
 VLtime <- NA
 
-Itresults <- data.frame(matrix(nrow=length(NUM_RAND_VEC_TRACE)*length(PRECONDITIONER)*n_rep,ncol = 4))
+Itresults <- data.frame(matrix(nrow=length(rank)*length(PRECONDITIONER)*n_rep,ncol = 4))
 colnames(Itresults) <- c("preconditioner", "t", "negLL", "time")
 
 ################################################################################
@@ -95,7 +104,7 @@ colnames(Itresults) <- c("preconditioner", "t", "negLL", "time")
 
 i = 1
 for(p in 1:length(PRECONDITIONER)){
-  for(t in 1:length(NUM_RAND_VEC_TRACE)){
+  for(t in 1:length(rank)){
     for(r in 1:n_rep){
       print(p)
       print(t)
@@ -108,29 +117,16 @@ for(p in 1:length(PRECONDITIONER)){
                          gp_approx = "vecchia",
                          vecchia_ordering = "random",
                          num_neighbors=NN)
-      if (p == 3){
-        Itmodel$set_optim_params(params = list(maxit=1,
-                                               trace=TRUE,
-                                               num_rand_vec_trace=NUM_RAND_VEC_TRACE[t],
-                                               cg_preconditioner_type = "predictive_process_plus_diagonal",
-                                               seed_rand_vec_trace = i,piv_chol_rank = 200))
-      } else if (p == 4){
-        Itmodel$set_optim_params(params = list(maxit=1,
-                                               trace=TRUE,
-                                               num_rand_vec_trace=NUM_RAND_VEC_TRACE[t],
-                                               cg_preconditioner_type = "predictive_process_plus_diagonal",
-                                               seed_rand_vec_trace = i,piv_chol_rank = 500))
-      } else {
-        Itmodel$set_optim_params(params = list(maxit=1,
-                                               trace=TRUE,
-                                               num_rand_vec_trace=NUM_RAND_VEC_TRACE[t],
-                                               cg_preconditioner_type = PRECONDITIONER[p],
-                                               seed_rand_vec_trace = i))
-      }
+      
+      Itmodel$set_optim_params(params = list(maxit=1,
+                                             trace=TRUE,
+                                             num_rand_vec_trace=50,
+                                             cg_preconditioner_type = PRECONDITIONER[p],
+                                             seed_rand_vec_trace = i, piv_chol_rank = rank[t]))
       
       
       Itresults$preconditioner[i] <- PRECONDITIONER[p]
-      Itresults$t[i] <- NUM_RAND_VEC_TRACE[t]
+      Itresults$t[i] <- rank[t]
       Itresults$time[i] <- system.time(Itresults$negLL[i] <- Itmodel$neg_log_likelihood(cov_pars=true_covpars, y=mydata$y))[3]
       
       i = i+1
@@ -165,16 +161,15 @@ library(ggplot2)
 library(grid)
 
 #Renaming
-Itresults$preconditioner[Itresults$preconditioner=="Sigma_inv_plus_BtWB"] <- "P[VADU]"
 Itresults$preconditioner[Itresults$preconditioner=="piv_chol_on_Sigma"] <- "P[LRAC]"
-Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal_200"] <- "P[FITC_200]"
-Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[VADU]", "P[LRAC]","P[FITC_200]"), ordered=TRUE)
+Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal"] <- "P[FITC]"
+Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[LRAC]","P[FITC]"), ordered=TRUE)
 Itresults$t <- as.factor(Itresults$t)
 
 p1 <- ggplot(Itresults, aes(x=t, y=negLL, fill=preconditioner)) + 
   geom_hline(yintercept=VLresult, linetype = "dashed") +  
   geom_boxplot() + labs(fill  = "") + ylab("log-likelihood") +
-  scale_fill_brewer(type = "qual", palette=6, labels = c("VADU", "Pivoted Cholesky", "FITC (m = 200)")) +
+  scale_fill_brewer(type = "qual", palette=6, labels = c("Pivoted Cholesky", "FITC")) +
   theme_bw() + theme(axis.title.x=element_blank(),
                      text = element_text(size=20),
                      axis.text.x=element_blank(), 
@@ -184,15 +179,19 @@ p1 <- ggplot(Itresults, aes(x=t, y=negLL, fill=preconditioner)) +
   guides(fill = guide_legend(nrow = 1, byrow = TRUE)) + scale_y_continuous()
 
 p2 <- ggplot(Itresults, aes(x=t, y=time, color=preconditioner, shape=preconditioner)) +
+  geom_hline(yintercept=VLtime, linetype = "dashed") + 
   stat_summary(aes(group = preconditioner), fun = mean, geom = 'line', size=1) + 
   stat_summary(aes(group = preconditioner), fun = mean, geom = 'point', size=2) +
   scale_color_brewer(type = "qual", palette=6) +labs(color = "") + 
   scale_shape_manual(values = c(1,2,3,4), labels = scales::parse_format()) +
   theme_bw() + theme(legend.position = "none",text = element_text(size=20), axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0))) +
   ylab("Time (s)") +
-  scale_y_log10(breaks = c(2,5,10,15,20,30,50,100)) +
-  xlab("Number of sample vectors") + annotate(geom="text", x=0.8, y=95, label=paste("Cholesky:",round(VLtime),"s"),
-                                              color="black",size = 5)
+  xlab("Rank")
+
+
+if (!Toy){
+  p2 <- p2 + scale_y_log10(breaks = c(2,5,10,15,20,VLtime))
+}
 
 grid.newpage()
 grid.draw(rbind(ggplotGrob(p1), 

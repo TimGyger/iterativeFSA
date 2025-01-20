@@ -6,32 +6,24 @@
 ## Packages
 #######
 
-# Package names
-packages <- c("dplyr","ggpubr","fields")
+source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
 
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
 
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-
-library(gpboost)
+#######
+## Data
+#######
 
 # Function for Simulating Data
-#source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Real World/Load_Data.R")
+#source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Real_World/Load_Data.R")
+#dat_train <- as.matrix(data_train)
+#dat_test <- as.matrix(data_test)
+
+dat_train <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real_World/data_train_temp.txt"))
+dat_test <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real_World/data_test_temp.txt"))
 
 #####################################################
 # Comparison
 #####################################################
-
-#dat_train <- as.matrix(data_train)
-#dat_test <- as.matrix(data_test)
-
-dat_train <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_train_temp.txt"))
-dat_test <- as.matrix(read.table("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Data/Real%20World/data_test_temp.txt"))
 
 y_test <- dat_test[,3]
 mat <- matrix(0,11,5)
