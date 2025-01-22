@@ -149,4 +149,4 @@ tab_final <- cbind(tab_final,tab_final_se)
 colnames(tab_final) <- c("Cholesky","Iterative","Cholesky Standard Error","Iterative Standard Error")
 rownames(tab_final) <- c("sigma","sigma_1","rho","time","RMSE","Log-Score","CRPSE","time_pred")
 
-
+print(tab_final)

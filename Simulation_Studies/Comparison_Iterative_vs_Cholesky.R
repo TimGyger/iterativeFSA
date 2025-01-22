@@ -239,7 +239,7 @@ for (i in 1:3) {
     vec1 <- vec
   } else {
     xxlab <- "Sample size in thousands"
-    vec <- n_vec
+    vec <- n_vec/1000
     vec1 <- vec[-1]
   }
   mat_NEGLL1 <- l_mat[[i]]
