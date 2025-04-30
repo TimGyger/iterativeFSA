@@ -60,7 +60,7 @@ for (i in 1:3) {
   effectiverange <- vec_ER[i]
   
   # Range Parameter (see Table 1 in Jointly Specified Spatial Priors for Bayesian Models of Crash Frequency)
-  arange <- effectiverange/4.7439
+  arange <- effectiverange/2.7
   
   set.seed(1)
   simdata <- sim_data(n = n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = 1)
