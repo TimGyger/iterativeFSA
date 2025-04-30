@@ -43,7 +43,7 @@ likelihood <- "gaussian"
 effectiverange <- 0.2
 
 # Range Parameter (see Table 1 in Jointly Specified Spatial Priors for Bayesian Models of Crash Frequency)
-arange <- effectiverange/4.7439
+arange <- effectiverange/2.7
 
 ## Generate data points
 # Simulate
