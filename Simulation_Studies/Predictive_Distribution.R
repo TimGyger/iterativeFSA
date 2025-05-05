@@ -45,44 +45,40 @@ effectiverange <- 0.2
 arange <- effectiverange/2.7
 
 set.seed(1)
-simdata <- sim_data(n = n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = 1)
-
+simdata <- sim_data(n = 2*n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = ii)
+  
 # Y values
-Y <- simdata[[1]]
+Y <- simdata[[1]][1:n]
 # X values (locations)
-X <- simdata[[2]]
+X <- simdata[[2]][1:n,]
 # Actual number of data points
 n <- dim(X)[1]
-
+  
 ## Ordering
 Y <- Y[order((X[,1])^2+(X[,2])^2)]
 X <- X[order((X[,1])^2+(X[,2])^2),]
-
+  
 ## Plot
 quilt.plot(X[,1],X[,2],Y,nx = 200)
 grid()
 coords_train <- X
 y_train <- Y
-
-
-set.seed(100)
-simdata <- sim_data(n = n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = 1)
-
+  
 # Y values
-Y <- simdata[[1]]
+Y <- simdata[[1]][(n+1):(2*n)]
 # X values (locations)
-X <- simdata[[2]]
+X <- simdata[[2]][(n+1):(2*n),]
 # Actual number of data points
 n <- dim(X)[1]
-
+  
 ## Ordering
 Y <- Y[order((X[,1])^2+(X[,2])^2)]
 X <- X[order((X[,1])^2+(X[,2])^2),]
-
+  
 ## Plot
 quilt.plot(X[,1],X[,2],Y,nx = 200)
 grid()
-coords_test <- X
+coords_test <- as.matrix(X)
 y_test <- Y
 
 #######################
