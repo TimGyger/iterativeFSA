@@ -49,12 +49,12 @@ l_mat <- list()
 ind <- 1
 for (ii in 1:num_samples) {
   set.seed(1)
-  simdata <- sim_data(n = n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = ii)
+  simdata <- sim_data(n = 2*n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = ii)
   
   # Y values
-  Y <- simdata[[1]]
+  Y <- simdata[[1]][1:n]
   # X values (locations)
-  X <- simdata[[2]]
+  X <- simdata[[2]][1:n,]
   # Actual number of data points
   n <- dim(X)[1]
   
@@ -68,13 +68,10 @@ for (ii in 1:num_samples) {
   coords_train <- X
   y_train <- Y
   
-  set.seed(100)
-  simdata <- sim_data(n = n,smoothness = smoothness, Covfunct = Covfunct,range_param = arange,sigma_param = sigma, sigma_error = sigma_error,seed = ii)
-  
   # Y values
-  Y <- simdata[[1]]
+  Y <- simdata[[1]][(n+1):(2*n)]
   # X values (locations)
-  X <- simdata[[2]]
+  X <- simdata[[2]][(n+1):(2*n),]
   # Actual number of data points
   n <- dim(X)[1]
   
