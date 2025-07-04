@@ -122,7 +122,7 @@ for(p in 1:length(PRECONDITIONER)){
                                              trace=TRUE,
                                              num_rand_vec_trace=50,
                                              cg_preconditioner_type = PRECONDITIONER[p],
-                                             seed_rand_vec_trace = i, piv_chol_rank = rank[t]))
+                                             seed_rand_vec_trace = i, fitc_piv_chol_preconditioner_rank = rank[t]))
       
       
       Itresults$preconditioner[i] <- PRECONDITIONER[p]
