@@ -141,7 +141,7 @@ gp_model <- fitGPModel(X = as.matrix(cbind(rep(1,nrow(dat_train)),dat_train[,1:2
                        y = dat_train[,3],params = list(maxit=1000,trace=TRUE,optimizer_cov = "lbfgs",cg_delta_conv = 1,cg_preconditioner_type = "predictive_process_plus_diagonal",
                                                        optimizer_cov = "lbfgs",
                                                        cg_max_num_it = 1000,cg_max_num_it_tridiag = 1000,num_rand_vec_trace = 50,
-                                                       seed_rand_vec_trace = 10,reuse_rand_vec_trace = T,init_cov_pars = c(1,207531),init_aux_pars = 1,piv_chol_rank = 500))
+                                                       seed_rand_vec_trace = 10,reuse_rand_vec_trace = T,init_cov_pars = c(1,207531),init_aux_pars = 1,fitc_piv_chol_preconditioner_rank = 500))
 
 mat[1:7,5] <- c(gp_model$get_coef(),gp_model$get_aux_pars(),gp_model$get_cov_pars(),proc.time()[[3]]-a)
 gp_model$set_prediction_data(nsim_var_pred = 500)
