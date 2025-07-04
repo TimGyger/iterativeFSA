@@ -86,7 +86,8 @@ mydata <- make_data(n=n,
 
 ################################################################################
 NUM_RAND_VEC_TRACE <- c(10, 20, 50, 100)
-PRECONDITIONER <- c("piv_chol_on_Sigma", "Sigma_inv_plus_BtWB","predictive_process_plus_diagonal_200")
+PRECONDITIONER <- c("piv_chol_on_Sigma", "Sigma_inv_plus_BtWB","predictive_process_plus_diagonal_200",
+                    "predictive_process_plus_diagonal_500", "vecchia_response", "incomplete_cholesky")
 n_rep <- 10
 
 VLresult <- NA
@@ -122,13 +123,13 @@ for(p in 1:length(PRECONDITIONER)){
                                                trace=TRUE,
                                                num_rand_vec_trace=NUM_RAND_VEC_TRACE[t],
                                                cg_preconditioner_type = "predictive_process_plus_diagonal",
-                                               seed_rand_vec_trace = i,piv_chol_rank = piv_chol_rank))
+                                               seed_rand_vec_trace = i,fitc_piv_chol_preconditioner_rank = piv_chol_rank))
       } else if (p == 4){
         Itmodel$set_optim_params(params = list(maxit=1,
                                                trace=TRUE,
                                                num_rand_vec_trace=NUM_RAND_VEC_TRACE[t],
                                                cg_preconditioner_type = "predictive_process_plus_diagonal",
-                                               seed_rand_vec_trace = i,piv_chol_rank = 500))
+                                               seed_rand_vec_trace = i,fitc_piv_chol_preconditioner_rank = 500))
       } else {
         Itmodel$set_optim_params(params = list(maxit=1,
                                                trace=TRUE,
@@ -177,13 +178,17 @@ library(grid)
 Itresults$preconditioner[Itresults$preconditioner=="Sigma_inv_plus_BtWB"] <- "P[VADU]"
 Itresults$preconditioner[Itresults$preconditioner=="piv_chol_on_Sigma"] <- "P[LRAC]"
 Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal_200"] <- "P[FITC_200]"
-Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[VADU]", "P[LRAC]","P[FITC_200]"), ordered=TRUE)
+Itresults$preconditioner[Itresults$preconditioner=="predictive_process_plus_diagonal_500"] <- "P[FITC_500]"
+Itresults$preconditioner[Itresults$preconditioner=="vecchia_response"] <- "P[Vecchia]"
+Itresults$preconditioner[Itresults$preconditioner=="incomplete_cholesky"] <- "P[Inc_Chol]"
+Itresults$preconditioner <- factor(Itresults$preconditioner, levels = c("P[VADU]", "P[LRAC]","P[FITC_200]","P[FITC_500]",
+                                                                        "P[Vecchia]","P[Inc_Chol]"), ordered=TRUE)
 Itresults$t <- as.factor(Itresults$t)
 
 p1 <- ggplot(Itresults, aes(x=t, y=negLL, fill=preconditioner)) + 
   geom_hline(yintercept=VLresult, linetype = "dashed") +  
   geom_boxplot() + labs(fill  = "") + ylab("log-likelihood") +
-  scale_fill_brewer(type = "qual", palette=6, labels = c("VADU", "Pivoted Cholesky", "FITC")) +
+  scale_fill_brewer(type = "qual", palette=6, labels = c("VADU", "Pivoted Cholesky", "FITC","FITC_500","Observable Vecchia","Incomplete Cholesky")) +
   theme_bw() + theme(axis.title.x=element_blank(),
                      text = element_text(size=20),
                      axis.text.x=element_blank(), 
@@ -196,7 +201,7 @@ p2 <- ggplot(Itresults, aes(x=t, y=time, color=preconditioner, shape=preconditio
   stat_summary(aes(group = preconditioner), fun = mean, geom = 'line', size=1) + 
   stat_summary(aes(group = preconditioner), fun = mean, geom = 'point', size=2) +
   scale_color_brewer(type = "qual", palette=6) +labs(color = "") + 
-  scale_shape_manual(values = c(1,2,3,4), labels = scales::parse_format()) +
+  scale_shape_manual(values = c(1,2,3,4,5,6), labels = scales::parse_format()) +
   theme_bw() + theme(legend.position = "none",text = element_text(size=20), axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0))) +
   ylab("Time (s)") +
   xlab("Number of sample vectors") 
@@ -204,7 +209,7 @@ p2 <- ggplot(Itresults, aes(x=t, y=time, color=preconditioner, shape=preconditio
 if (!Toy){
   p2 <- p2 + scale_y_log10(breaks = c(2,5,10,15,20,30,50,100)) +
     annotate(geom="text", x=0.8, y=95, label=paste("Cholesky:",round(VLtime),"s"),
-                      color="black",size = 5) 
+             color="black",size = 5) 
 }
 
 grid.newpage()
