@@ -7,7 +7,8 @@
 ## Packages
 #######
 
-source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+source("./../Packages.R")
 
 ################################################################################
 #Generate data
