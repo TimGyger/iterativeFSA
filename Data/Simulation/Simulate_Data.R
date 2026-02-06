@@ -3,7 +3,8 @@
 #######################################################
 
 ### Install/Load Packages
-source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+source("./../../Packages.R")
 
 ### Function for simulating Data
 sim_data <- function(n,smoothness = 3/2, Covfunct = "matern",range_param,sigma_param,sigma_error,seed) {
