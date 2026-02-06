@@ -6,14 +6,15 @@
 ## Packages
 #######
 
-source("https://raw.githubusercontent.com/TimGyger/iterativeFSA/refs/heads/main/Packages.R")
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+source("./../Packages.R")
 
 #######
 ## Data
 #######
 
 # Function for Simulating Data
-source("https://raw.github.com/TimGyger/iterativeFSA/master/Data/Simulation/Simulate_Data.R")
+source("./../Data/Simulation/Simulate_Data.R")
 
 #####################################################
 # Parameters
