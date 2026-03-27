@@ -1,0 +1,57 @@
+diff --git a/DESCRIPTION b/DESCRIPTION
+index 798f180..3265688 100644
+--- a/DESCRIPTION
++++ b/DESCRIPTION
+@@ -15,3 +15,4 @@ Packaged: 2022-04-18 03:42:38 UTC; schlather
+ NeedsCompilation: yes
+ Repository: CRAN
+ Date/Publication: 2022-04-19 11:32:32 UTC
++RoxygenNote: 7.3.3
+diff --git a/src/options.cc b/src/options.cc
+index fb0f6da..f5a3ef3 100644
+--- a/src/options.cc
++++ b/src/options.cc
+@@ -116,7 +116,7 @@ void setoptionsRFU(int i, int j, SEXP el, char name[LEN_OPTIONNAME],
+ 	PRINTF("The system does not allow for OpenMP: the value 1 is kept for 'cores'.");
+       }    
+ #endif
+-      if (options->installNrun.determineLAmode) SetLaMode();
++      if (options->installNrun.determineLAmode) SetLaModeRF();
+       CORES = gp->cores;
+       break;
+     case 4: gp->skipchecks = LOGI;    break;
+@@ -539,7 +539,7 @@ void SetLaMode(la_modes usr_mode, int VARIABLE_IS_NOT_USED cores) {
+   
+   utils->installNrun.la_mode = la_mode;
+ }
+-void SetLaMode() {
++void SetLaModeRF() {
+   utilsoption_type *utils = &OPTIONS;
+   SetLaMode(utils->installNrun.la_usr,
+ 	    utils->basic.cores);
+diff --git a/src/options.h b/src/options.h
+index 317bdc0..79c64b5 100644
+--- a/src/options.h
++++ b/src/options.h
+@@ -149,7 +149,7 @@ struct utilsoption_type{
+ 
+ //int own_chol_up_to(int size, int maxtime);
+ //int own_chol_up_to();
+-void SetLaMode();
++void SetLaModeRF();
+ void SetLaMode(la_modes, int cores);
+ void solve_DELETE0(solve_storage *x);
+ void resetInstalled();
+diff --git a/src/xport_import.cc b/src/xport_import.cc
+index 1a83d10..fc173ff 100644
+--- a/src/xport_import.cc
++++ b/src/xport_import.cc
+@@ -166,7 +166,7 @@ void loadoptions() {
+   KT->global_utils.basic.bigendian = ab.b[0] != 0;
+ 
+   //finalizeoptions();
+-  SetLaMode();
++  SetLaModeRF();
+ }
+ 
+ 

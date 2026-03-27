@@ -1,0 +1,14 @@
+diff --git a/src/RF.h b/src/RF.h
+index 3585cc8..94722db 100644
+--- a/src/RF.h
++++ b/src/RF.h
+@@ -29,6 +29,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ #include "basic.h"
+ #include "init.h"
+ 
++#ifndef PI
++#define PI M_PI
++#endif
+ 
+ 
+ //
