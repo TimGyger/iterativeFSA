@@ -1,0 +1,6 @@
+[submodule "external/RandomFields"]
+	path = external/RandomFields
+	url = https://github.com/cran/RandomFields.git
+[submodule "external/RandomFieldsUtils"]
+	path = external/RandomFieldsUtils
+	url = https://github.com/cran/RandomFieldsUtils.git
