@@ -4,6 +4,20 @@ This repository provides the R code for the simulation studies and real-world ap
 
 The iterative methods for full-scale approximations are implemented in the **GPBoost** package, available here: [https://github.com/fabsig/GPBoost](https://github.com/fabsig/GPBoost).
 
+This repository uses Git submodules for external dependencies.
+
+## Setup
+
+After cloning, run:
+```
+git clone --recurse-submodules https://github.com/TimGyger/iterativeFSA.git
+```
+
+If you already cloned the repository, initialize submodules with:
+```
+git submodule update --init --recursive
+```
+
 ## Repository Structure
 
 - **`Data`**  
